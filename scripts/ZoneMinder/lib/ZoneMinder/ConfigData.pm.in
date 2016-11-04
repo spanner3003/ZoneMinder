@@ -392,7 +392,7 @@ our @options =
         requires    => [
                          {name=>"ZM_OPT_USE_AUTH", value=>"yes"}
                        ],
-        type        => $types {boolean},
+        type        => $types{boolean},
         category    => "system",
     },
   
@@ -408,7 +408,7 @@ our @options =
         requires    => [
                          {name=>"ZM_OPT_USE_GOOG_RECAPTCHA", value=>"yes"}
                        ],
-        type        => $types {string},
+        type        => $types{string},
         category    => "system",
     },
     {
@@ -423,7 +423,7 @@ our @options =
         requires    => [
                          {name=>"ZM_OPT_USE_GOOG_RECAPTCHA", value=>"yes"}
                        ],
-        type        => $types {string},
+        type        => $types{string},
         category    => "system",
     },
     
@@ -1871,10 +1871,10 @@ our @options =
             installed.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"tar|zip",
-            pattern     =>qr|^([tz])|i,
-            format      =>q( $1 =~ /^t/ ? "tar" : "zip" )
+            db_type     => "string",
+            hint        => "tar|zip",
+            pattern     => qr|^([tz])|i,
+            format      => q( $1 =~ /^t/ ? "tar" : "zip" )
         },
         category    => "upload",
     },
@@ -1926,10 +1926,10 @@ our @options =
             on your choice.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"ftp|sftp",
-            pattern     =>qr|^([tz])|i,
-            format      =>q( $1 =~ /^f/ ? "ftp" : "sftp" )
+            db_type     => "string",
+            hint        => "ftp|sftp",
+            pattern     => qr|^([tz])|i,
+            format      => q( $1 =~ /^f/ ? "ftp" : "sftp" )
         },
         category    => "upload",
     },
@@ -2584,10 +2584,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
         "),
         type        => $types{boolean},
         type        => {
-            db_type     =>"string",
-            hint        =>"time|idle|alarm",
-            pattern     =>qr|^([tia])|i,
-            format      =>q( ($1 =~ /^t/)
+            db_type     => "string",
+            hint        => "time|idle|alarm",
+            pattern     => qr|^([tia])|i,
+            format      => q( ($1 =~ /^t/)
                              ? "time"
                              : ($1 =~ /^i/ ? "idle" : "time" )
                            )
@@ -2868,10 +2868,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             have to be done manually.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"javascript|http",
-            pattern     =>qr|^([jh])|i,
-            format      =>q( $1 =~ /^j/
+            db_type     => "string",
+            hint        => "javascript|http",
+            pattern     => qr|^([jh])|i,
+            format      => q( $1 =~ /^j/
                              ? "javascript"
                              : "http"
                            )
@@ -2891,10 +2891,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             ordering in the lists and so not always to time based ordering.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"Id|Name|Cause|MonitorName|DateTime|Length|Frames|AlarmFrames|TotScore|AvgScore|MaxScore",
-            pattern     =>qr|.|,
-            format      =>q( $1 )
+            db_type     => "string",
+            hint        => "Id|Name|Cause|MonitorName|DateTime|Length|Frames|AlarmFrames|TotScore|AvgScore|MaxScore",
+            pattern     => qr|.|,
+            format      => q( $1 )
         },
         category    => "web",
     },
@@ -2912,10 +2912,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             always to time based ordering.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"asc|desc",
-            pattern     =>qr|^([ad])|i,
-            format      =>q( $1 =~ /^a/i ? "asc" : "desc" )
+            db_type     => "string",
+            hint        => "asc|desc",
+            pattern     => qr|^([ad])|i,
+            format      => q( $1 =~ /^a/i ? "asc" : "desc" )
         },
         category    => "web",
     },
@@ -3106,10 +3106,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             Explorer
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"mpeg|jpeg",
-            pattern     =>qr|^([mj])|i,
-            format      =>q( $1 =~ /^m/ ? "mpeg" : "jpeg" )
+            db_type     => "string",
+            hint        => "mpeg|jpeg",
+            pattern     => qr|^([mj])|i,
+            format      => q( $1 =~ /^m/ ? "mpeg" : "jpeg" )
         },
         category    => "highband",
     },
@@ -3127,10 +3127,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             is double size etc.
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"25|33|50|75|100|150|200|300|400",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+            db_type     => "integer",
+            hint        => "25|33|50|75|100|150|200|300|400",
+            pattern     => qr|^(\d+)$|,
+            format      => q( $1 )
         },
         category    => "highband",
     },
@@ -3147,10 +3147,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             100 is normal rate, 200 is double speed etc.
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"25|50|100|150|200|400|1000|2500|5000|10000",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+            db_type     => "integer",
+            hint        => "25|50|100|150|200|400|1000|2500|5000|10000",
+            pattern     => qr|^(\d+)$|,
+            format      => q( $1 )
         },
         category    => "highband",
     },
@@ -3225,10 +3225,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             view is currently being used.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"events|timeline",
-            pattern     =>qr|^([lt])|i,
-            format      =>q( $1 =~ /^e/ ? "events" : "timeline" )
+            db_type     => "string",
+            hint        => "events|timeline",
+            pattern     => qr|^([lt])|i,
+            format      => q( $1 =~ /^e/ ? "events" : "timeline" )
         },
         category    => "highband",
     },
@@ -3369,10 +3369,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             Explorer
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"mpeg|jpeg",
-            pattern     =>qr|^([mj])|i,
-            format      =>q( $1 =~ /^m/ ? "mpeg" : "jpeg" )
+            db_type     => "string",
+            hint        => "mpeg|jpeg",
+            pattern     => qr|^([mj])|i,
+            format      => q( $1 =~ /^m/ ? "mpeg" : "jpeg" )
         },
         category    => "medband",
     },
@@ -3390,10 +3390,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             is double size etc.
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"25|33|50|75|100|150|200|300|400",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+            db_type     => "integer",
+            hint        => "25|33|50|75|100|150|200|300|400",
+            pattern     => qr|^(\d+)$|,
+            format      => q( $1 )
         },
         category    => "medband",
     },
@@ -3410,10 +3410,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             100 is normal rate, 200 is double speed etc.
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"25|50|100|150|200|400|1000|2500|5000|10000",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+            db_type     => "integer",
+            hint        => "25|50|100|150|200|400|1000|2500|5000|10000",
+            pattern     => qr|^(\d+)$|,
+            format      => q( $1 )
         },
         category    => "medband",
     },
@@ -3488,10 +3488,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             view is currently being used.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"events|timeline",
-            pattern     =>qr|^([lt])|i,
-            format      =>q( $1 =~ /^e/ ? "events" : "timeline" )
+            db_type     => "string",
+            hint        => "events|timeline",
+            pattern     => qr|^([lt])|i,
+            format      => q( $1 =~ /^e/ ? "events" : "timeline" )
         },
         category    => "medband",
     },
@@ -3632,10 +3632,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             Explorer
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"mpeg|jpeg",
-            pattern     =>qr|^([mj])|i,
-            format      =>q( $1 =~ /^m/ ? "mpeg" : "jpeg" )
+            db_type     => "string",
+            hint        => "mpeg|jpeg",
+            pattern     => qr|^([mj])|i,
+            format      => q( $1 =~ /^m/ ? "mpeg" : "jpeg" )
         },
         category    => "lowband",
     },
@@ -3653,10 +3653,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             is double size etc.
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"25|33|50|75|100|150|200|300|400",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+            db_type     => "integer",
+            hint        => "25|33|50|75|100|150|200|300|400",
+            pattern     => qr|^(\d+)$|,
+            format      => q( $1 )
         },
         category    => "lowband",
     },
@@ -3673,9 +3673,9 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             100 is normal rate, 200 is double speed etc.
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"25|50|100|150|200|400|1000|2500|5000|10000",
-            pattern     =>qr|^(\d+)$|, format=>q( $1 )
+            db_type     => "integer",
+            hint        => "25|50|100|150|200|400|1000|2500|5000|10000",
+            pattern     => qr|^(\d+)$|, format=>q( $1 )
         },
         category    => "lowband",
     },
@@ -3750,10 +3750,10 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             view is currently being used.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"events|timeline",
-            pattern     =>qr|^([lt])|i,
-            format      =>q( $1 =~ /^e/ ? "events" : "timeline" )
+            db_type     => "string",
+            hint        => "events|timeline",
+            pattern     => qr|^([lt])|i,
+            format      => q( $1 =~ /^e/ ? "events" : "timeline" )
         },
         category    => "lowband",
     },
@@ -3904,25 +3904,25 @@ our %options_hash = map { ( $_->{name}, $_ ) } @options;
 # this module is 'require'd rather than 'use'd. See zmconfgen.pl.
 sub initialiseConfig
 {
-    return if ( $configInitialised );
+  return if ( $configInitialised );
 
-    # Do some initial data munging to finish the data structures
-    # Create option ids
-    my $option_id = 0;
-    foreach my $option ( @options )
+# Do some initial data munging to finish the data structures
+# Create option ids
+  my $option_id = 0;
+  foreach my $option ( @options )
+  {
+    if ( defined($option->{default}) )
     {
-        if ( defined($option->{default}) )
-        {
-            $option->{value} = $option->{default}
-        }
-        else
-        {
-            $option->{value} = '';
-        }
-        #next if ( $option->{category} eq 'hidden' );
-        $option->{id} = $option_id++;
+      $option->{value} = $option->{default}
     }
-    $configInitialised = 1;
+    else
+    {
+      $option->{value} = '';
+    }
+#next if ( $option->{category} eq 'hidden' );
+    $option->{id} = $option_id++;
+  }
+  $configInitialised = 1;
 }
 
 1;
