@@ -131,7 +131,6 @@ sub find {
     push @results, $filter;
   } # end while
   $sth->finish();
-
   return @results;
 }
 
