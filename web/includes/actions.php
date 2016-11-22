@@ -278,8 +278,22 @@ if ( !empty($action) ) {
   // Monitor edit actions, require a monitor id and edit permissions for that monitor
   if ( !empty($_REQUEST['mid']) && canEdit( 'Monitors', $_REQUEST['mid'] ) ) {
     $mid = validInt($_REQUEST['mid']);
-    if ( $action == 'function' ) {
-      $monitor = dbFetchOne( 'SELECT * FROM Monitors WHERE Id=?', NULL, array($mid) );
+    $monitor = dbFetchOne( 'SELECT * FROM Monitors WHERE Id=?', NULL, array($mid) );
+
+    if ( $action == 'stop' ) {
+          zmaControl( $monitor, 'stop' );
+          zmcControl( $monitor, 'stop' );
+          zmaControl( $monitor, 'start' );
+    } else if ( $action == 'start' ) {
+          zmaControl( $monitor, 'stop' );
+          zmcControl( $monitor, $restart?'restart':'' );
+          zmaControl( $monitor, 'start' );
+    } else if ( $action == 'restart' ) {
+          zmaControl( $monitor, 'stop' );
+          zmcControl( $monitor, $restart?'restart':'' );
+          zmaControl( $monitor, 'start' );
+    
+    } else if ( $action == 'function' ) {
 
       $newFunction = validStr($_REQUEST['newFunction']);
       # Because we use a checkbox, it won't get passed in the request. So not being in _REQUEST means 0
@@ -291,17 +305,17 @@ if ( !empty($action) ) {
 
         $monitor['Function'] = $newFunction;
         $monitor['Enabled'] = $newEnabled;
-        if ( daemonCheck() ) {
-          $restart = ($oldFunction == 'None') || ($newFunction == 'None') || ($newEnabled != $oldEnabled);
+        #if ( daemonCheck() ) {
           zmaControl( $monitor, 'stop' );
-          zmcControl( $monitor, $restart?'restart':'' );
+          zmcControl( $monitor, 'stop' );
+        if ( $newFunction != 'None' ) {
+          zmcControl( $monitor, 'start' );
           zmaControl( $monitor, 'start' );
         }
         $refreshParent = true;
       }
     } elseif ( $action == 'zone' && isset( $_REQUEST['zid'] ) ) {
       $zid = validInt($_REQUEST['zid']);
-      $monitor = dbFetchOne( 'SELECT * FROM Monitors WHERE Id=?', NULL, array($mid) );
 
       if ( !empty($zid) ) {
         $zone = dbFetchOne( 'SELECT * FROM Zones WHERE MonitorId=? AND Id=?', NULL, array( $mid, $zid ) );
@@ -369,7 +383,6 @@ if ( !empty($action) ) {
       $view = 'none';
     } elseif ( $action == 'sequence' && isset($_REQUEST['smid']) ) {
       $smid = validInt($_REQUEST['smid']);
-      $monitor = dbFetchOne( 'select * from Monitors where Id = ?', NULL, array($mid) );
       $smonitor = dbFetchOne( 'select * from Monitors where Id = ?', NULL, array($smid) );
 
       dbQuery( 'update Monitors set Sequence=? where Id=?', array( $smonitor['Sequence'], $monitor['Id'] ) );
@@ -410,6 +423,7 @@ if ( !empty($action) ) {
       if ( !empty($_REQUEST['mid']) ) {
         $mid = validInt($_REQUEST['mid']);
         $monitor = dbFetchOne( 'SELECT * FROM Monitors WHERE Id = ?', NULL, array($mid) );
+Error("Editing monitor $mid");
 
         if ( ZM_OPT_X10 ) {
           $x10Monitor = dbFetchOne( 'SELECT * FROM TriggersX10 WHERE MonitorId=?', NULL, array($mid) );
@@ -518,6 +532,7 @@ if ( !empty($action) ) {
       }
 
       if ( $restart ) {
+        Debug("estart");
         $new_monitor = dbFetchOne( 'SELECT * FROM Monitors WHERE Id = ?', NULL, array($mid) );
         //fixDevices();
         //if ( $cookies )
@@ -528,6 +543,8 @@ if ( !empty($action) ) {
 
           zmcControl( $new_monitor, 'start' );
           zmaControl( $new_monitor, 'start' );
+        } else {
+        Debug("daemoncheck failed");
         }
         if ( $monitor['Controllable'] ) {
           require_once( 'control_functions.php' );
@@ -535,6 +552,8 @@ if ( !empty($action) ) {
         } 
         //daemonControl( 'restart', 'zmwatch.pl' );
         $refreshParent = true;
+      } else {
+        Debug("No need to restart");
       } // end if restart
       $view = 'none';
     }

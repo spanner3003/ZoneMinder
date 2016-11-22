@@ -860,23 +860,26 @@ function zmcControl( $monitor, $mode=false ) {
       daemonControl( "start", "zmc", $zmcArgs );
     }
   } else {
+Debug("Remote Monitor");
     $Server = new Server( $monitor['ServerId'] );
 
     #$url = $Server->Url() . '/zm/api/monitors.json?auth='.generateAuthHash( $_SESSION['remoteAddr'] );
-    $url = $Server->Url() . '/zm/api/monitors.json?user='.$_SESSION['username'].'&pass='.$_SESSION['passwordHash'];
-    $data = array('Monitor[Function]' => $monitor['Function'] );
+    $url = $Server->Url() . "/zm/index.php?view=none&action=$mode&mid=".$monitor['Id'].'&auth='.generateAuthHash( $_SESSION['remoteAddr'] );
+Debug($url);
 
     // use key 'http' even if you send the request to https://...
     $options = array(
         'http' => array(
           'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
           'method'  => 'POST',
-          'content' => http_build_query($data)
+          #'content' => http_build_query($data)
           )
         );
     $context  = stream_context_create($options);
     $result = file_get_contents($url, false, $context);
-    if ($result === FALSE) { /* Handle error */ }
+    if ($result === FALSE) { /* Handle error */ 
+Error("No result from $url");
+    }
 
   }
 }
@@ -886,6 +889,7 @@ function zmaControl( $monitor, $mode=false ) {
     $monitor = dbFetchOne( "select C.*, M.* from Monitors as M left join Controls as C on (M.ControlId = C.Id ) where M.Id=?", NULL, array($monitor) );
   }
   if ( (!defined('ZM_SERVER_ID')) or ( ZM_SERVER_ID==$monitor['ServerId'] ) ) {
+Debug("Local Monitor");
     if ( !$monitor || $monitor['Function'] == 'None' || $monitor['Function'] == 'Monitor' || $mode == "stop" ) {
       if ( ZM_OPT_CONTROL ) {
         daemonControl( "stop", "zmtrack.pl", "-m ".$monitor['Id'] );
