@@ -5,6 +5,10 @@
 
 %global _hardened_build 1
 
+### Delete the lines below to build with ffmpeg and/or x10
+%define _without_ffmpeg 1
+%define _without_x10 1
+
 Name: zoneminder
 Version: 1.30.0
 Release: 1%{?dist}
@@ -28,16 +32,26 @@ BuildRequires: perl(PHP::Serialization) perl(Sys::Mmap)
 BuildRequires: perl(Time::HiRes) perl(Net::SFTP::Foreign)
 BuildRequires: perl(Expect) perl(Sys::Syslog)
 BuildRequires: gcc gcc-c++ vlc-devel libcurl-devel libv4l-devel
-BuildRequires: ffmpeg ffmpeg-devel perl(X10::ActiveHome) perl(Astro::SunTime)
+%{!?_without_ffmpeg:BuildRequires: ffmpeg-devel}
+%{!?_without_x10:BuildRequires: perl(X10::ActiveHome) perl(Astro::SunTime)}
 # cmake needs the following installed at build time due to the way it auto-detects certain parameters
 BuildRequires:  httpd polkit-devel
+%{!?_without_ffmpeg:BuildRequires: ffmpeg}
 
-Requires: httpd php php-gd php-mysql mariadb-server cambozola polkit net-tools
-Requires: psmisc libjpeg-turbo vlc-core libcurl
+# php-mysql was deprecated beginning with f25
+%if 0%{?fedora} >= 25
+Requires: php-mysqlnd
+%else
+Requires: php-mysql
+%endif
+
+Requires: httpd php php-gd cambozola polkit net-tools psmisc
+Requires: libjpeg-turbo vlc-core libcurl
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 Requires: perl(DBD::mysql) perl(Archive::Tar) perl(Archive::Zip)
 Requires: perl(MIME::Entity) perl(MIME::Lite) perl(Net::SMTP) perl(Net::FTP)
-Requires: perl(LWP::Protocol::https) ffmpeg
+Requires: perl(LWP::Protocol::https)
+%{!?_without_ffmpeg:Requires: ffmpeg}
 
 Requires(post): systemd-units systemd-sysv
 Requires(post): /usr/bin/gpasswd
@@ -69,7 +83,9 @@ too much degradation of performance.
 
 %build
 %cmake \
-	-DZM_TARGET_DISTRO="el%{rhel}" \
+	-DZM_TARGET_DISTRO="fc%{fedora}" \
+%{?_without_ffmpeg:-DZM_NO_FFMPEG=ON} \
+%{?_without_x10:-DZM_NO_X10=ON} \
 	.
 
 make %{?_smp_mflags}
@@ -79,6 +95,10 @@ export DESTDIR=%{buildroot}
 make install
 
 %post
+
+# Add any new PTZ control configurations to the database (will not overwrite)
+%{_bindir}/zmcamtool.pl --import >/dev/null 2>&1 || :
+
 if [ $1 -eq 1 ] ; then
     # Initial installation
     /bin/systemctl daemon-reload >/dev/null 2>&1 || :
@@ -88,13 +108,6 @@ fi
 /usr/bin/gpasswd -a %{zmuid_final} video
 /usr/bin/gpasswd -a %{zmuid_final} dialout
 
-# Disabled. SELinux policy does not work for RHEL 7.
-# Create and load zoneminder selinux policy module
-#echo -e "\nCreating and installing a ZoneMinder SELinux policy module. Please wait.\n"
-#/usr/bin/checkmodule -M -m -o %{_docdir}/%{name}-%{version}/local_zoneminder.mod %{_docdir}/%{name}-%{version}/local_zoneminder.te > /dev/null
-#/usr/bin/semodule_package -o %{_docdir}/%{name}-%{version}/local_zoneminder.pp -m %{_docdir}/%{name}-%{version}/local_zoneminder.mod > /dev/null
-#/usr/sbin/semodule -i %{_docdir}/%{name}-%{version}/local_zoneminder.pp > /dev/null
-
 # Upgrade from a previous version of zoneminder 
 if [ $1 -eq 2 ] ; then
 
@@ -102,7 +115,7 @@ if [ $1 -eq 2 ] ; then
     %{_bindir}/zmcamtool.pl --import >/dev/null 2>&1 || :
 
     # Freshen the database
-    %{_bindir}/zmupdate.pl -f >/dev/null 2>&1 || :
+    %{_bindir}/zmupdate.pl -f  >/dev/null 2>&1 || :
 
     # We can't run this automatically when new sql account permissions need to
     # be manually added first
@@ -111,16 +124,14 @@ if [ $1 -eq 2 ] ; then
 fi
 
 # Warn the end user to read the README file
-echo -e "\nVERY IMPORTANT: Before starting ZoneMinder, read README.Centos7 to finish the\ninstallation or upgrade!\n"
-echo -e "\nThe README file is located here: %{_docdir}/%{name}-%{version}.\n"
+echo -e "\nVERY IMPORTANT: Before starting ZoneMinder, read README.Fedora to finish the\ninstallation or upgrade!\n"
+echo -e "\nThe README file is located here: %{_docdir}/%{name}\n"
 
 %preun
 if [ $1 -eq 0 ] ; then
     # Package removal, not upgrade
     /bin/systemctl --no-reload disable zoneminder.service > /dev/null 2>&1 || :
     /bin/systemctl stop zoneminder.service > /dev/null 2>&1 || :
-#    echo -e "\nRemoving ZoneMinder SELinux policy module. Please wait.\n"
-#    /usr/sbin/semodule -r local_zoneminder.pp
 fi
 
 %postun
@@ -140,10 +151,10 @@ fi
 /sbin/chkconfig --del zoneminder >/dev/null 2>&1 || :
 /bin/systemctl try-restart zoneminder.service >/dev/null 2>&1 || :
 
+
 %files
 %defattr(-,root,root,-)
-%doc AUTHORS BUGS ChangeLog COPYING LICENSE NEWS README.md distros/redhat/README.Centos7 distros/redhat/README.https distros/redhat/jscalendar-doc
-%doc distros/redhat/local_zoneminder.te
+%doc AUTHORS COPYING README.md distros/fedora/README.Fedora distros/fedora/README.https distros/fedora/jscalendar-doc
 %config %attr(640,root,%{zmgid_final}) /etc/zm/zm.conf
 %config(noreplace) %attr(644,root,root) /etc/httpd/conf.d/zoneminder.conf
 %config(noreplace) /etc/tmpfiles.d/zoneminder.conf
@@ -168,12 +179,10 @@ fi
 %{_bindir}/zmcamtool.pl
 %{_bindir}/zmsystemctl.pl
 %{_bindir}/zmtelemetry.pl
-%{_bindir}/zmx10.pl
+%{!?_without_x10:%{_bindir}/zmx10.pl}
 %{_bindir}/zmonvif-probe.pl
 
 %{perl_vendorlib}/ZoneMinder*
-%{perl_vendorarch}/auto/ZoneMinder/.packlist
-%{perl_vendorarch}/auto/ONVIF/.packlist
 %{perl_vendorlib}/ONVIF*
 %{perl_vendorlib}/WSDiscovery*
 %{perl_vendorlib}/WSSecurity*
@@ -203,11 +212,11 @@ fi
 * Thu Mar 3 2016 Andrew Bauer <knnniggett@users.sourceforge.net> - 1.30.0 
 - Bump version fo 1.30.0 release.
 
-* Mon Sep 7 2015 Andrew Bauer <knnniggett@users.sourceforge.net> - 1.28.1 
-- Require https, disable selinux module, freshen dB on updates.
+* Sat Nov 21 2015 Andrew Bauer <knnniggett@users.sourceforge.net> - 1.29.0 
+- Bump version for 1.29.0 release on Fedora 23.
 
-* Sun Feb 8 2015 Andrew Bauer <knnniggett@users.sourceforge.net> - 1.28.1 
-- Initial release for CentOS 7.
+* Sat Feb 14 2015 Andrew Bauer <knnniggett@users.sourceforge.net> - 1.28.1 
+- Bump version for 1.28.1 release on Fedora 21.
 
 * Sun Oct 5 2014 Andrew Bauer <knnniggett@users.sourceforge.net> - 1.28.0 
 - Bump version for 1.28.0 release.

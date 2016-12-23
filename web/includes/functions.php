@@ -52,11 +52,13 @@ function userLogin( $username, $password="", $passwordHashed=false ) {
   if ( $dbUser = dbFetchOne( $sql, NULL, $sql_values ) ) {
     Info( "Login successful for user \"$username\"" );
     $_SESSION['user'] = $user = $dbUser;
+    unset($_SESSION['loginFailed']);
     if ( ZM_AUTH_TYPE == "builtin" ) {
       $_SESSION['passwordHash'] = $user['Password'];
     }
   } else {
     Warning( "Login denied for user \"$username\"" );
+    $_SESSION['loginFailed'] = true;
     unset( $user );
   }
   if ( $cookies )
@@ -2128,5 +2130,13 @@ function getStreamHTML( $monitor, $scale=100 ) {
         return getImageStill( "liveStream", $streamSrc, reScale( $monitor->Width(), $scale ), reScale( $monitor->Height(), $scale ), $monitor->Name() );
     }
 } // end function getStreamHTML
+
+function folder_size($dir) {
+    $size = 0;
+    foreach (glob(rtrim($dir, '/').'/*', GLOB_NOSORT) as $each) {
+        $size += is_file($each) ? filesize($each) : folderSize($each);
+    }
+    return $size;
+} // end fucntion folder_size
 
 ?>
