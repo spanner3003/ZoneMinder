@@ -135,7 +135,7 @@ VideoStore::VideoStore(const char *filename_in, const char *format_in,
 
 
   if (inpaud_st) {
-    audio_st = avformat_new_stream(oc, inpaud_st->codec->codec);
+    audio_st = avformat_new_stream(oc, (AVCodec*)inpaud_st->codec->codec);
     if (!audio_st) {
       Error("Unable to create audio out stream\n");
       audio_st = NULL;
