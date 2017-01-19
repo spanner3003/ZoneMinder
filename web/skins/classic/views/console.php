@@ -112,8 +112,6 @@ for( $i = 0; $i < count($displayMonitors); $i += 1 ) {
 
 noCacheHeaders();
 
-$seqUpFile = getSkinFile( 'graphics/seq-u.gif' );
-$seqDownFile = getSkinFile( 'graphics/seq-d.gif' );
 $eventsView = ZM_WEB_EVENTS_VIEW;
 $eventsWindow = 'zm'.ucfirst(ZM_WEB_EVENTS_VIEW);
 $left_columns = 3;
@@ -131,9 +129,8 @@ xhtmlHeaders( __FILE__, translate('Console') );
     <?php echo $navbar ?>
 
     <div class="container-fluid">
-      <!--<table class="table table-striped table-hover table-condensed">-->
     <div id="content">
-      <div id="consoleTable" cellspacing="0">
+      <div id="consoleTable" class="table table-striped table-hover table-condensed">
         <div class="thead">
           <div class="tr">
 <div class="MonitorInfo">
@@ -160,14 +157,6 @@ for ( $i = 0; $i < count($eventCounts); $i++ ) {
 ?>
 </div>
             <div class="colZones"><?php echo translate('Zones') ?></div>
-<?php
-if ( canEdit('Monitors') )
-{
-?>
-            <div class="colOrder"><?php echo translate('Order') ?></div>
-<?php
-}
-?>
             <div class="colMark"><?php echo translate('Mark') ?></div>
           </div>
         </div>
@@ -223,9 +212,9 @@ for( $monitor_i = 0; $monitor_i < count($displayMonitors); $monitor_i += 1 ) {
     $scale = max( reScale( SCALE_BASE, $monitor['DefaultScale'], ZM_WEB_DEFAULT_SCALE ), SCALE_BASE );
 ?>
 <div class="MonitorInfo">
-<?php if ( ZM_WEB_ID_ON_CONSOLE ) { ?>
+  <?php if ( ZM_WEB_ID_ON_CONSOLE ) { ?>
             <div class="colId"><?php echo makePopupLink( '?view=watch&amp;mid='.$monitor['Id'], 'zmWatch'.$monitor['Id'], array( 'watch', reScale( $monitor['Width'], $scale ), reScale( $monitor['Height'], $scale ) ), $monitor['Id'], $running && ($monitor['Function'] != 'None') && canView( 'Stream' ) ) ?></div>
-<?php } ?>
+  <?php } ?>
             <div class="colName"><?php echo makePopupLink( '?view=watch&amp;mid='.$monitor['Id'], 'zmWatch'.$monitor['Id'], array( 'watch', reScale( $monitor['Width'], $scale ), reScale( $monitor['Height'], $scale ) ), $monitor['Name'], $running && ($monitor['Function'] != 'None') && canView( 'Stream' ) ) ?></div>
             <div class="colFunction"><?php echo makePopupLink( '?view=function&amp;mid='.$monitor['Id'], 'zmFunction', 'function', '<span class="'.$fclass.'">'.translate('Fn'.$monitor['Function']).( empty($monitor['Enabled']) ? ', disabled' : '' ) .'</span>', canEdit( 'Monitors' ) ) ?></div>
 <?php if ( count($servers) ) { ?>
@@ -267,32 +256,10 @@ echo $Server->Name();
 ?>
 			</div>
             <div class="colZones"><?php echo makePopupLink( '?view=zones&amp;mid='.$monitor['Id'], 'zmZones', array( 'zones', $monitor['Width'], $monitor['Height'] ), $monitor['ZoneCount'], $running && canView( 'Monitors' ) ) ?></div>
-<?php
-    if ( canEdit('Monitors') )
-    {
-?>
-<<<<<<< HEAD
-            <div class="colOrder">
-<?php 
-  if ( $monitor_i ) {
-    echo makeLink( '?view='.$view.'&amp;action=sequence&amp;mid='.$monitor['Id'].'&amp;smid='.$displayMonitors[$monitor_i-1]['Id'], '<img src="'.$seqUpFile.'" alt="Up"/>' );
-  } else {
-    echo '<img src="'.$seqUpFile.'" alt="Up"/>';
-  }
-  if ( $monitor_i<count($displayMonitors)-1 ) {
-    echo makeLink( '?view='.$view.'&amp;action=sequence&amp;mid='.$monitor['Id'].'&amp;smid='.$displayMonitors[$monitor_i+1]['Id'], '<img src="'.$seqDownFile.'" alt="Down"/>' );
-  } else {
-    echo '<img src="'.$seqDownFile.'" alt="Down"/>';
-  }
-?>
-            </div>
-<?php
-    }
-?>
             <div class="colMark"><input type="checkbox" name="markMids[]" value="<?php echo $monitor['Id'] ?>" onclick="setButtonStates( this );"<?php if ( !canEdit( 'Monitors' ) ) { ?> disabled="disabled"<?php } ?>/></div>
           </div>
 <?php
-} # end for eacho monitor
+} # end for each monitor
 ?>
         </div>
       </div>
