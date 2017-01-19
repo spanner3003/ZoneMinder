@@ -65,7 +65,7 @@ display: table;
 
 #consoleTable .Events {
 	display: table-cell;
-	width: 381px;
+	width: 310px;
 }
 #consoleTable .Events .Events {
 	width: 50px;
