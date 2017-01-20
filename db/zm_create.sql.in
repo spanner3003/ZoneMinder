@@ -342,7 +342,7 @@ CREATE TABLE `Monitors` (
   `Host` varchar(64),
   `Port` varchar(8) NOT NULL default '',
   `SubPath` varchar(64) NOT NULL default '',
-  `Path` varchar(255) NOT NULL default '',
+  `Path` varchar(255) default '',
   `Options` varchar(255),
   `User` varchar(64),
   `Pass` varchar(64),
