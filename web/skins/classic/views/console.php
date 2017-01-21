@@ -133,7 +133,7 @@ xhtmlHeaders( __FILE__, translate('Console') );
       <div id="consoleTable" class="table table-striped table-hover table-condensed">
         <div class="thead">
           <div class="tr">
-<div class="MonitorInfo">
+<div class="MonitorInfo"><div class="table">
 <?php if ( ZM_WEB_ID_ON_CONSOLE ) { ?>
             <div class="colId"><?php echo translate('Id') ?></div>
 <?php } ?>
@@ -146,6 +146,7 @@ xhtmlHeaders( __FILE__, translate('Console') );
 <?php if ( $show_storage_areas ) { ?>
             <div class="colStorage"><?php echo translate('Storage') ?></div>
 <?php } ?>
+</div>
 </div>
 <div class="Events">
 <?php
@@ -167,6 +168,7 @@ for ( $i = 0; $i < count($eventCounts); $i++ ) {
               <input type="button" class="btn btn-primary" name="addBtn" value="<?php echo translate('AddNewMonitor') ?>" onclick="addMonitor( this )"/>
               <!-- <?php echo makePopupButton( '?view=monitor', 'zmMonitor0', 'monitor', translate('AddNewMonitor'), (canEdit( 'Monitors' ) && !$user['MonitorIds']) ) ?> -->
               <?php echo makePopupButton( '?view=filter&amp;filter[terms][0][attr]=DateTime&amp;filter[terms][0][op]=%3c&amp;filter[terms][0][val]=now', 'zmFilter', 'filter', translate('Filters'), canView( 'Events' ) ) ?>
+<input class="btn btn-primary" type="button" name="editBtn" value="<?php echo translate('Edit') ?>" onclick="editMonitor( this )" disabled="disabled"/>
             </div>
 			<div class="Events">
 <?php
@@ -180,11 +182,11 @@ for ( $i = 0; $i < count($eventCounts); $i++ )
 ?>
 			</div>
             <div class="colZones"><?php echo $zoneCount ?></div>
-            <div class="colRightButtons"><input class="btn btn-primary" type="button" name="editBtn" value="<?php echo translate('Edit') ?>" onclick="editMonitor( this )" disabled="disabled"/></div>
-            <div><input class="btn btn-danger" type="button" name="deleteBtn" value="<?php echo translate('Delete') ?>" onclick="deleteMonitor( this )" disabled="disabled"/></div>
+            <div class="colRightButtons">
+            <input class="btn btn-danger" type="button" name="deleteBtn" value="<?php echo translate('Delete') ?>" onclick="deleteMonitor( this )" disabled="disabled"/></div>
           </div>
         </div>
-        <div class="tbody">
+        <div class="tbody" id="tableConsoleBody>
 <?php
 for( $monitor_i = 0; $monitor_i < count($displayMonitors); $monitor_i += 1 ) {
   $monitor = $displayMonitors[$monitor_i];
@@ -211,7 +213,7 @@ for( $monitor_i = 0; $monitor_i < count($displayMonitors); $monitor_i += 1 ) {
         $fclass .= " disabledText";
     $scale = max( reScale( SCALE_BASE, $monitor['DefaultScale'], ZM_WEB_DEFAULT_SCALE ), SCALE_BASE );
 ?>
-<div class="MonitorInfo">
+<div class="MonitorInfo"><div class="table">
   <?php if ( ZM_WEB_ID_ON_CONSOLE ) { ?>
             <div class="colId"><?php echo makePopupLink( '?view=watch&amp;mid='.$monitor['Id'], 'zmWatch'.$monitor['Id'], array( 'watch', reScale( $monitor['Width'], $scale ), reScale( $monitor['Height'], $scale ) ), $monitor['Id'], $running && ($monitor['Function'] != 'None') && canView( 'Stream' ) ) ?></div>
   <?php } ?>
@@ -245,7 +247,8 @@ echo $Server->Name();
 <?php if ( $show_storage_areas ) { ?>
 			<div class="colStorage"><?php $Storage = new Storage( $monitor['StorageId'] ); echo $Storage->Name(); ?></div>
 <?php } ?>
-	</div><div class="Events">
+	</div></div>
+<div class="Events">
 <?php
     for ( $i = 0; $i < count($eventCounts); $i++ )
     {
@@ -273,4 +276,10 @@ if ( canEdit('System') ) {
 }
 ?>
 </body>
+  <script>
+  //$( function() {
+    $j( "#consoleTableBody" ).sortable();
+    $j( "#consoleTableBody" ).disableSelection();
+  //} );
+  </script>
 </html>

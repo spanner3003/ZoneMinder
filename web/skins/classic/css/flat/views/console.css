@@ -57,10 +57,24 @@ display: table;
 	width: auto;
 }
 #consoleTable .MonitorInfo div {
-	display: inline-block;
+	display: table;
+  width: 100%;
+}
+#consoleTable .MonitorInfo div div {
+	display: table-cell;
 	text-align: left;
 	width: 19%;
 	padding: 5px 0;
+}
+#consoleTable .MonitorInfo div.colId {
+	width: 40px;
+	text-align: center;
+	display: table-cell;
+}
+#consoleTable .MonitorInfo div.colFunction {
+	width: 120px;
+	text-align: center;
+	display: table-cell;
 }
 
 #consoleTable .Events {
@@ -84,12 +98,6 @@ display: table;
 }
 
 #consoleTable .tr div {
-}
-
-#consoleTable .colOrder {
-	width: 47px;
-	text-align: center;
-	display: table-cell;
 }
 
 #consoleTable .colMark {
