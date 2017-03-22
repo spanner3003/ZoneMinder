@@ -15,7 +15,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
 require_once( 'includes/Server.php');
@@ -240,6 +240,13 @@ $rtspMethods = array(
     "rtpMulti"    => "RTP/Multicast",
     "rtpRtsp"     => "RTP/RTSP",
     "rtpRtspHttp" => "RTP/RTSP/HTTP"
+);
+
+$rtspFFMpegMethods = array(
+    "rtpRtsp"     => "TCP",
+    "rtpUni"      => "UDP",
+    "rtpMulti"    => "UDP Multicast",
+    "rtpRtspHttp" => "HTTP Tunnel"
 );
 
 $httpMethods = array(
@@ -744,7 +751,7 @@ switch ( $tab )
         {
 ?>
             <tr><td><?php echo translate('RefImageBlendPct') ?></td><td><select name="newMonitor[RefBlendPerc]"><?php foreach ( $fastblendopts as $name => $value ) { ?><option value="<?php echo $value ?>"<?php if ( $value == $newMonitor['RefBlendPerc'] ) { ?> selected="selected"<?php } ?>><?php echo $name ?></option><?php } ?></select></td></tr>
-            <tr><td><?php echo translate('AlmRefImageBlendPct') ?></td><td><select name="newMonitor[AlarmRefBlendPerc]"><?php foreach ( $fastblendopts_alarm as $name => $value ) { ?><option value="<?php echo $value ?>"<?php if ( $value == $newMonitor['AlarmRefBlendPerc'] ) { ?> selected="selected"<?php } ?>><?php echo $name ?></option><?php } ?></select></td></tr>
+            <tr><td><?php echo translate('AlarmRefImageBlendPct') ?></td><td><select name="newMonitor[AlarmRefBlendPerc]"><?php foreach ( $fastblendopts_alarm as $name => $value ) { ?><option value="<?php echo $value ?>"<?php if ( $value == $newMonitor['AlarmRefBlendPerc'] ) { ?> selected="selected"<?php } ?>><?php echo $name ?></option><?php } ?></select></td></tr>
 <?php
   } else {
 ?>
@@ -858,7 +865,7 @@ switch ( $tab )
         {
 ?>
       <tr><td><?php echo translate('SourcePath') ?></td><td><input type="text" name="newMonitor[Path]" value="<?php echo validHtmlStr($newMonitor['Path']) ?>" size="36"/></td></tr>
-            <tr><td><?php echo translate('RemoteMethod') ?></td><td><?php echo buildSelect( "newMonitor[Method]", $rtspMethods ); ?></td></tr>
+            <tr><td><?php echo translate('RemoteMethod') ?>&nbsp;(<?php echo makePopupLink('?view=optionhelp&amp;option=OPTIONS_RTSPTrans', 'zmOptionHelp', 'optionhelp', '?' ) ?>)</td><td><?php echo buildSelect( "newMonitor[Method]", $rtspFFMpegMethods ); ?></td></tr>
       <tr><td><?php echo translate('Options') ?>&nbsp;(<?php echo makePopupLink( '?view=optionhelp&amp;option=OPTIONS_'.strtoupper($newMonitor['Type']), 'zmOptionHelp', 'optionhelp', '?' ) ?>)</td><td><input type="text" name="newMonitor[Options]" value="<?php echo validHtmlStr($newMonitor['Options']) ?>" size="36"/></td></tr>
 <?php
         }
