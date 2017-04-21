@@ -19,8 +19,8 @@
 //
 
 if ( !canView( 'Events' ) ) {
-    $view = 'error';
-    return;
+  $view = 'error';
+  return;
 }
 
 $eid = validInt( $_REQUEST['eid'] );
@@ -37,9 +37,9 @@ if ( $user['MonitorIds'] ) {
 }
 
 if ( isset( $_REQUEST['rate'] ) )
-    $rate = validInt($_REQUEST['rate']);
+  $rate = validInt($_REQUEST['rate']);
 else
-    $rate = reScale( RATE_BASE, $Monitor->DefaultRate(), ZM_WEB_DEFAULT_RATE );
+  $rate = reScale( RATE_BASE, $Monitor->DefaultRate(), ZM_WEB_DEFAULT_RATE );
 
 if ( isset( $_REQUEST['scale'] ) ) {
   $scale = validInt($_REQUEST['scale']);
@@ -56,14 +56,14 @@ $replayModes = array(
 );
 
 if ( isset( $_REQUEST['streamMode'] ) )
-    $streamMode = validHtmlStr($_REQUEST['streamMode']);
+  $streamMode = validHtmlStr($_REQUEST['streamMode']);
 else
-    $streamMode = 'video';
+  $streamMode = 'video';
 
 if ( isset( $_REQUEST['replayMode'] ) )
-    $replayMode = validHtmlStr($_REQUEST['replayMode']);
+  $replayMode = validHtmlStr($_REQUEST['replayMode']);
 if ( isset( $_COOKIE['replayMode']) && preg_match('#^[a-z]+$#', $_COOKIE['replayMode']) )
-    $replayMode = validHtmlStr($_COOKIE['replayMode']);
+  $replayMode = validHtmlStr($_COOKIE['replayMode']);
 else {
 	$keys = array_keys( $replayModes );
 	$replayMode = array_shift( $keys );
@@ -147,7 +147,7 @@ if ( $Event->SaveJPEGs() & 3 ) { // Analysis or Jpegs
 if ( $Event->DefaultVideo() ) {
 ?>
         <div id="videoFeed">
-          <video id="videoobj" class="video-js vjs-default-skin" width="<?php echo reScale( $Event->Width(), $scale ) ?>" height="<?php echo reScale( $Event->Height(), $scale ) ?>" data-setup='{ "controls": true, "playbackRates": [0.5, 1, 1.5, 2, 4, 8, 16, 32, 64, 128, 256], "autoplay": true, "preload": "auto", "plugins": { "zoomrotate": { "zoom": "<?php echo $Zoom ?>"}}}'>
+          <video id="videoobj" class="video-js vjs-default-skin" width="<?php echo reScale( $Event->Width(), $scale ) ?>" height="<?php echo reScale( $Event->Height(), $scale ) ?>" controls preload="auto" data-setup='{ "controls": true, "playbackRates": [0.5, 1, 1.5, 2, 4, 8, 16, 32, 64, 128, 256], "autoplay": true, "preload": "auto" }'>
           <source src="<?php echo $Event->getStreamSrc( array( "mode=mpeg&format=h264" ) ); ?>" type="video/mp4">
           Your browser does not support the video tag.
           </video>

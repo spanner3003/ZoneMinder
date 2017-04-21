@@ -375,7 +375,7 @@ function saveChanges( element ) {
 }
 
 function drawZonePoints() {
-    $('imageFrame').getElements( 'div.zonePoint' ).each( function( element ) { element.destroy(); } );
+    $('imageFrame').getElements( 'div.zonePoint' ).each( function( element ) { element.remove(); } );
     for ( var i = 0; i < zone['Points'].length; i++ ) {
         var div = new Element( 'div', { 'id': 'point'+i, 'class': 'zonePoint', 'title': 'Point '+(i+1), 'styles': { 'left': zone['Points'][i].x, 'top': zone['Points'][i].y } } );
         div.addEvent( 'mouseover', highlightOn.pass( i ) );

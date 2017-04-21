@@ -9,7 +9,7 @@ function setButtonState( element, butClass )
 }
 
 function changeScale() {
-  var scale = $('scale').get('value');
+  var scale = $j('#scale').get('value');
   var baseWidth = eventData.Width;
   var baseHeight = eventData.Height;
   var newWidth = ( baseWidth * scale ) / SCALE_BASE;
@@ -21,16 +21,15 @@ function changeScale() {
 		vid.height = newHeight;
 	} else {
     streamScale( scale );
-		var streamImg = document.getElementById('evtStream');
+		var streamImg = $j('#evtStream');
 		streamImg.style.width = newWidth + "px";
 		streamImg.style.height = newHeight + "px";
 	}
   Cookie.write( 'zmEventScale'+eventData.MonitorId, scale, { duration: 10*365 } );
 }
 
-function changeReplayMode()
-{
-    var replayMode = $('replayMode').get('value');
+function changeReplayMode() {
+    var replayMode = $j('#replayMode').get('value');
 
     Cookie.write( 'replayMode', replayMode, { duration: 10*365 })
 
@@ -43,8 +42,11 @@ var streamCmdTimer = null;
 var streamStatus = null;
 var lastEventId = 0;
 
-function getCmdResponse( respObj, respText )
-{
+function streamReq( command ) {
+    $j.getJSON( thisUrl, streamParms+'&'+command, getCmdResponse );
+}
+
+function getCmdResponse( respObj, respText ) {
     if ( checkStreamForErrors( "getCmdResponse" ,respObj ) )
         return;
 
@@ -54,36 +56,32 @@ function getCmdResponse( respObj, respText )
     streamStatus = respObj.status;
 
     var eventId = streamStatus.event;
-    if ( eventId != lastEventId )
-    {
+    if ( eventId != lastEventId ) {
         eventQuery( eventId );
         lastEventId = eventId;
     }
-    if ( streamStatus.paused == true )
-    {
-        $('modeValue').set( 'text', "Paused" );
-        $('rate').addClass( 'hidden' );
+    if ( streamStatus.paused == true ) {
+        $j('#modeValue').html("Paused" );
+        $j('#rate').addClass( 'hidden' );
         streamPause( false );
-    }
-    else 
-    {
-        $('modeValue').set( 'text', "Replay" );
-        $('rateValue').set( 'text', streamStatus.rate );
-        $('rate').removeClass( 'hidden' );
+    } else {
+        $j('#modeValue').html( "Replay" );
+        $j('#rateValue').html( streamStatus.rate );
+        $j('#rate').removeClass( 'hidden' );
         streamPlay( false );
     }
-    $('progressValue').set( 'text', secsToTime( parseInt(streamStatus.progress) ) );
-    $('zoomValue').set( 'text', streamStatus.zoom );
+    $j('#progressValue').html( secsToTime( parseInt(streamStatus.progress) ) );
+    $j('#zoomValue').html( streamStatus.zoom );
     if ( streamStatus.zoom == "1.0" )
-        setButtonState( $('zoomOutBtn'), 'unavail' );
+        setButtonState( $j('#zoomOutBtn'), 'unavail' );
     else
-        setButtonState( $('zoomOutBtn'), 'inactive' );
+        setButtonState( $j('#zoomOutBtn'), 'inactive' );
 
     updateProgressBar();
 
     if ( streamStatus.auth ) {
       // Try to reload the image stream.
-      var streamImg = document.getElementById('evtStream');
+      var streamImg = $j('#evtStream');
       if ( streamImg )
         streamImg.src = streamImg.src.replace( /auth=\w+/i, 'auth='+streamStatus.auth );
     } // end if haev a new auth hash
@@ -91,120 +89,106 @@ function getCmdResponse( respObj, respText )
     streamCmdTimer = streamQuery.delay( streamTimeout );
 }
 
-var streamReq = new Request.JSON( { url: thisUrl, method: 'get', timeout: AJAX_TIMEOUT, link: 'chain', onSuccess: getCmdResponse } );
 
 function streamPause( action )
 {
-    setButtonState( $('pauseBtn'), 'active' );
-    setButtonState( $('playBtn'), 'inactive' );
-    setButtonState( $('fastFwdBtn'), 'unavail' );
-    setButtonState( $('slowFwdBtn'), 'inactive' );
-    setButtonState( $('slowRevBtn'), 'inactive' );
-    setButtonState( $('fastRevBtn'), 'unavail' );
-    streamReq.send( streamParms+"&command="+CMD_PAUSE );
+    setButtonState( $j('#pauseBtn'), 'active' );
+    setButtonState( $j('#playBtn'), 'inactive' );
+    setButtonState( $j('#fastFwdBtn'), 'unavail' );
+    setButtonState( $j('#slowFwdBtn'), 'inactive' );
+    setButtonState( $j('#slowRevBtn'), 'inactive' );
+    setButtonState( $j('#fastRevBtn'), 'unavail' );
+    streamReq( "command="+CMD_PAUSE );
 }
 
-function streamPlay( action )
-{
-    setButtonState( $('pauseBtn'), 'inactive' );
+function streamPlay( action ) {
+    setButtonState( $j('#pauseBtn'), 'inactive' );
     if (streamStatus)
-        setButtonState( $('playBtn'), streamStatus.rate==1?'active':'inactive' );
-    setButtonState( $('fastFwdBtn'), 'inactive' );
-    setButtonState( $('slowFwdBtn'), 'unavail' );
-    setButtonState( $('slowRevBtn'), 'unavail' );
-    setButtonState( $('fastRevBtn'), 'inactive' );
-    streamReq.send( streamParms+"&command="+CMD_PLAY );
+        setButtonState( $j('#playBtn'), streamStatus.rate==1?'active':'inactive' );
+    setButtonState( $j('#fastFwdBtn'), 'inactive' );
+    setButtonState( $j('#slowFwdBtn'), 'unavail' );
+    setButtonState( $j('#slowRevBtn'), 'unavail' );
+    setButtonState( $j('#fastRevBtn'), 'inactive' );
+    streamReq( "command="+CMD_PLAY );
 }
 
-function streamFastFwd( action )
-{
-    setButtonState( $('pauseBtn'), 'inactive' );
-    setButtonState( $('playBtn'), 'inactive' );
-    setButtonState( $('fastFwdBtn'), 'inactive' );
-    setButtonState( $('slowFwdBtn'), 'unavail' );
-    setButtonState( $('slowRevBtn'), 'unavail' );
-    setButtonState( $('fastRevBtn'), 'inactive' );
-    streamReq.send( streamParms+"&command="+CMD_FASTFWD );
+function streamFastFwd( action ) {
+    setButtonState( $j('#pauseBtn'), 'inactive' );
+    setButtonState( $j('#playBtn'), 'inactive' );
+    setButtonState( $j('#fastFwdBtn'), 'inactive' );
+    setButtonState( $j('#slowFwdBtn'), 'unavail' );
+    setButtonState( $j('#slowRevBtn'), 'unavail' );
+    setButtonState( $j('#fastRevBtn'), 'inactive' );
+    streamReq( "command="+CMD_FASTFWD );
 }
 
-function streamSlowFwd( action )
-{
-    setButtonState( $('pauseBtn'), 'inactive' );
-    setButtonState( $('playBtn'), 'inactive' );
-    setButtonState( $('fastFwdBtn'), 'unavail' );
-    setButtonState( $('slowFwdBtn'), 'active' );
-    setButtonState( $('slowRevBtn'), 'inactive' );
-    setButtonState( $('fastRevBtn'), 'unavail' );
-    streamReq.send( streamParms+"&command="+CMD_SLOWFWD );
-    setButtonState( $('pauseBtn'), 'inactive' );
-    setButtonState( $('slowFwdBtn'), 'inactive' );
+function streamSlowFwd( action ) {
+    setButtonState( $j('#pauseBtn'), 'inactive' );
+    setButtonState( $j('#playBtn'), 'inactive' );
+    setButtonState( $j('#fastFwdBtn'), 'unavail' );
+    setButtonState( $j('#slowFwdBtn'), 'active' );
+    setButtonState( $j('#slowRevBtn'), 'inactive' );
+    setButtonState( $j('#fastRevBtn'), 'unavail' );
+    streamReq( "command="+CMD_SLOWFWD );
+    setButtonState( $j('#pauseBtn'), 'inactive' );
+    setButtonState( $j('#slowFwdBtn'), 'inactive' );
 }
 
-function streamSlowRev( action )
-{
-    setButtonState( $('pauseBtn'), 'inactive' );
-    setButtonState( $('playBtn'), 'inactive' );
-    setButtonState( $('fastFwdBtn'), 'unavail' );
-    setButtonState( $('slowFwdBtn'), 'inactive' );
-    setButtonState( $('slowRevBtn'), 'active' );
-    setButtonState( $('fastRevBtn'), 'unavail' );
-    streamReq.send( streamParms+"&command="+CMD_SLOWREV );
-    setButtonState( $('pauseBtn'), 'inactive' );
-    setButtonState( $('slowRevBtn'), 'inactive' );
+function streamSlowRev( action ) {
+    setButtonState( $j('#pauseBtn'), 'inactive' );
+    setButtonState( $j('#playBtn'), 'inactive' );
+    setButtonState( $j('#fastFwdBtn'), 'unavail' );
+    setButtonState( $j('#slowFwdBtn'), 'inactive' );
+    setButtonState( $j('#slowRevBtn'), 'active' );
+    setButtonState( $j('#fastRevBtn'), 'unavail' );
+    streamReq( "command="+CMD_SLOWREV );
+    setButtonState( $j('#pauseBtn'), 'inactive' );
+    setButtonState( $j('#slowRevBtn'), 'inactive' );
 }
 
-function streamFastRev( action )
-{
-    setButtonState( $('pauseBtn'), 'inactive' );
-    setButtonState( $('playBtn'), 'inactive' );
-    setButtonState( $('fastFwdBtn'), 'inactive' );
-    setButtonState( $('slowFwdBtn'), 'unavail' );
-    setButtonState( $('slowRevBtn'), 'unavail' );
-    setButtonState( $('fastRevBtn'), 'inactive' );
-    streamReq.send( streamParms+"&command="+CMD_FASTREV );
+function streamFastRev( action ) {
+    setButtonState( $j('#pauseBtn'), 'inactive' );
+    setButtonState( $j('#playBtn'), 'inactive' );
+    setButtonState( $j('#fastFwdBtn'), 'inactive' );
+    setButtonState( $j('#slowFwdBtn'), 'unavail' );
+    setButtonState( $j('#slowRevBtn'), 'unavail' );
+    setButtonState( $j('#fastRevBtn'), 'inactive' );
+    streamReq( "command="+CMD_FASTREV );
 }
 
-function streamPrev( action )
-{
+function streamPrev( action ) {
 	if ( action )
-		streamReq.send( streamParms+"&command="+CMD_PREV );
+    streamReq( "command="+CMD_PREV );
 }
 
-function streamNext( action )
-{
+function streamNext( action ) {
 	if ( action )
-		streamReq.send( streamParms+"&command="+CMD_NEXT );
+    streamReq( "command="+CMD_NEXT );
 }
 
 
-function streamZoomIn( x, y )
-{
-    streamReq.send( streamParms+"&command="+CMD_ZOOMIN+"&x="+x+"&y="+y );
+function streamZoomIn( x, y ) {
+    streamReq( "command="+CMD_ZOOMIN+"&x="+x+"&y="+y );
 }
 
-function streamZoomOut()
-{
-    streamReq.send( streamParms+"&command="+CMD_ZOOMOUT );
+function streamZoomOut() {
+    streamReq( "command="+CMD_ZOOMOUT );
 }
 
-function streamScale( scale )
-{
-    streamReq.send( streamParms+"&command="+CMD_SCALE+"&scale="+scale );
+function streamScale( scale ) {
+    streamReq( "command="+CMD_SCALE+"&scale="+scale );
 }
 
-function streamPan( x, y )
-{
-    streamReq.send( streamParms+"&command="+CMD_PAN+"&x="+x+"&y="+y );
+function streamPan( x, y ) {
+    streamReq( "command="+CMD_PAN+"&x="+x+"&y="+y );
 }
 
-function streamSeek( offset )
-{
-    streamReq.send( streamParms+"&command="+CMD_SEEK+"&offset="+offset );
+function streamSeek( offset ) {
+    streamReq( "command="+CMD_SEEK+"&offset="+offset );
 }
 
-function streamQuery()
-{       
-    streamReq.send( streamParms+"&command="+CMD_QUERY );
+function streamQuery() {       
+    streamReq( "command="+CMD_QUERY );
 }       
 
 var slider = null;
@@ -216,53 +200,44 @@ function getEventResponse( respObj, respText )
         return;
 
     eventData = respObj.event;
-    var eventStills = $('eventStills');
+    var eventStills = $j('#eventStills');
   
-    if ( eventStills && !$('eventStills').hasClass( 'hidden' ) && currEventId != eventData.Id )
+    if ( eventStills && !$j('#eventStills').hasClass( 'hidden' ) && currEventId != eventData.Id )
         resetEventStills();
     currEventId = eventData.Id;
 
-    $('dataId').set( 'text', eventData.Id );
-    if ( eventData.Notes )
-    {
-        $('dataCause').setProperty( 'title', eventData.Notes );
+    $j('#dataId').html( eventData.Id );
+    if ( eventData.Notes ) {
+        $j('#dataCause').attr( 'title', eventData.Notes );
+    } else {
+        $j('#dataCause').attr( 'title', causeString );
     }
-    else
-    {
-        $('dataCause').setProperty( 'title', causeString );
-    }
-    $('dataCause').set( 'text', eventData.Cause );
-    $('dataTime').set( 'text', eventData.StartTime );
-    $('dataDuration').set( 'text', eventData.Length );
-    $('dataFrames').set( 'text', eventData.Frames+"/"+eventData.AlarmFrames );
-    $('dataScore').set( 'text', eventData.TotScore+"/"+eventData.AvgScore+"/"+eventData.MaxScore );
-    $('eventName').setProperty( 'value', eventData.Name );
+    $j('#dataCause').html( eventData.Cause );
+    $j('#dataTime').html(eventData.StartTime );
+    $j('#dataDuration').html(eventData.Length );
+    $j('#dataFrames').html(eventData.Frames+"/"+eventData.AlarmFrames );
+    $j('#dataScore').html(eventData.TotScore+"/"+eventData.AvgScore+"/"+eventData.MaxScore );
+    $j('#eventName').setProperty( 'value', eventData.Name );
 
-    if ( canEditEvents )
-    {
-        if ( parseInt(eventData.Archived) )
-        {
-            $('archiveEvent').addClass( 'hidden' );
-            $('unarchiveEvent').removeClass( 'hidden' );
-        }
-        else
-        {
-            $('archiveEvent').removeClass( 'hidden' );
-            $('unarchiveEvent').addClass( 'hidden' );
+    if ( canEditEvents ) {
+        if ( parseInt(eventData.Archived) ) {
+            $j('#archiveEvent').addClass( 'hidden' );
+            $j('#unarchiveEvent').removeClass( 'hidden' );
+        } else {
+            $j('#archiveEvent').removeClass( 'hidden' );
+            $j('#unarchiveEvent').addClass( 'hidden' );
         }
     }
-    //var eventImg = $('eventImage');
+    //var eventImg = $j('#eventImage');
     //eventImg.setStyles( { 'width': eventData.width, 'height': eventData.height } );
     drawProgressBar();
     nearEventsQuery( eventData.Id );
 }
 
-var eventReq = new Request.JSON( { url: thisUrl, method: 'get', timeout: AJAX_TIMEOUT, link: 'cancel', onSuccess: getEventResponse } );
 
-function eventQuery( eventId )
-{
-    var eventParms = "view=request&request=status&entity=event&id="+eventId;
-    eventReq.send( eventParms );
+function eventQuery( eventId ) {
+  var eventParms = "view=request&request=status&entity=event&id="+eventId;
+  $j.getJSON( thisUrl, eventParms, getEventResponse );
 }
 
 var prevEventId = 0;
@@ -270,8 +245,7 @@ var nextEventId = 0;
 var PrevEventDefVideoPath = "";
 var NextEventDefVideoPath = "";
 
-function getNearEventsResponse( respObj, respText )
-{
+function getNearEventsResponse( respObj, respText ) {
     if ( checkStreamForErrors( "getNearEventsResponse", respObj ) )
         return;
     prevEventId = respObj.nearevents.PrevEventId;
@@ -279,27 +253,22 @@ function getNearEventsResponse( respObj, respText )
     PrevEventDefVideoPath = respObj.nearevents.PrevEventDefVideoPath;
     NextEventDefVideoPath = respObj.nearevents.NextEventDefVideoPath;
 
-    var prevEventBtn = $('prevEventBtn');
+    var prevEventBtn = $j('#prevEventBtn');
     if ( prevEventBtn ) prevEventBtn.disabled = !prevEventId;
-    var nextEventBtn = $('nextEventBtn');
+    var nextEventBtn = $j('#nextEventBtn');
     if ( nextEventBtn ) nextEventBtn.disabled = !nextEventId;
 }
 
-var nearEventsReq = new Request.JSON( { url: thisUrl, method: 'get', timeout: AJAX_TIMEOUT, link: 'cancel', onSuccess: getNearEventsResponse } );
-
-function nearEventsQuery( eventId )
-{
-    var parms = "view=request&request=status&entity=nearevents&id="+eventId;
-    nearEventsReq.send( parms );
+function nearEventsQuery( eventId ) {
+  var parms = "view=request&request=status&entity=nearevents&id="+eventId;
+  $j.getJSON( thisUrl, parms, getNearEventsResponse );
 }
 
 var frameBatch = 40;
 
-function loadEventThumb( event, frame, loadImage )
-{
-    var thumbImg = $('eventThumb'+frame.FrameId);
-    if ( !thumbImg )
-    {
+function loadEventThumb( event, frame, loadImage ) {
+    var thumbImg = $j('#eventThumb'+frame.FrameId);
+    if ( !thumbImg ) {
         console.error( "No holder found for frame "+frame.FrameId );
         return;
     }
@@ -312,7 +281,7 @@ function loadEventThumb( event, frame, loadImage )
                     thumbImg.setProperty( 'class', frame.Type=='Alarm'?'alarm':'normal' );
                     thumbImg.setProperty( 'title', frame.FrameId+' / '+((frame.Type=='Alarm')?frame.Score:0) );
                     thumbImg.removeEvents( 'click' );
-                    thumbImg.addEvent( 'click', function() { locateImage( frame.FrameId, true ); } );
+                    thumbImg.bind( 'click', function() { locateImage( frame.FrameId, true ); } );
                     if ( loadImage )
                         loadEventImage( event, frame );
                 } ).pass( loadImage )
@@ -320,14 +289,13 @@ function loadEventThumb( event, frame, loadImage )
     );
 }
 
-function updateStillsSizes( noDelay )
-{
-    var containerDim = $('eventThumbs').getSize();
+function updateStillsSizes( noDelay ) {
+    var containerDim = $j('#eventThumbs').getSize();
 
     var containerWidth = containerDim.x;
     var containerHeight = containerDim.y;
-    var popupWidth = parseInt($('eventImage').getStyle( 'width' ));
-    var popupHeight = parseInt($('eventImage').getStyle( 'height' ));
+    var popupWidth = parseInt($j('#eventImage').getStyle( 'width' ));
+    var popupHeight = parseInt($j('#eventImage').getStyle( 'height' ));
 
     var left = (containerWidth - popupWidth)/2;
     if ( left < 0 ) left = 0;
@@ -338,7 +306,7 @@ function updateStillsSizes( noDelay )
         updateStillsSizes.pass( true ).delay( 50 );
         return;
     }
-    $('eventImagePanel').setStyles( {
+    $j('#eventImagePanel').setStyles( {
         'left': left,
         'top': top
     } );
@@ -347,15 +315,15 @@ function updateStillsSizes( noDelay )
 function loadEventImage( event, frame )
 {
     console.debug( "Loading "+event.Id+"/"+frame.FrameId );
-    var eventImg = $('eventImage');
-    var thumbImg = $('eventThumb'+frame.FrameId);
+    var eventImg = $j('#eventImage');
+    var thumbImg = $j('#eventThumb'+frame.FrameId);
     if ( eventImg.getProperty( 'src' ) != thumbImg.getProperty( 'src' ) )
     {
-        var eventImagePanel = $('eventImagePanel');
+        var eventImagePanel = $j('#eventImagePanel');
 
         if ( eventImagePanel.getStyle( 'display' ) != 'none' )
         {
-            var lastThumbImg = $('eventThumb'+eventImg.getProperty( 'alt' ));
+            var lastThumbImg = $j('#eventThumb'+eventImg.getProperty( 'alt' ));
             lastThumbImg.removeClass('selected');
             lastThumbImg.setOpacity( 1.0 );
         }
@@ -368,11 +336,11 @@ function loadEventImage( event, frame )
             'width': event.Width,
             'height': event.Height
         } );
-        $('eventImageBar').setStyle( 'width', event.Width );
+        $j('#eventImageBar').setStyle( 'width', event.Width );
         if ( frame.Type=='Alarm' )
-            $('eventImageStats').removeClass( 'hidden' );
+            $j('#eventImageStats').removeClass( 'hidden' );
         else
-            $('eventImageStats').addClass( 'hidden' );
+            $j('#eventImageStats').addClass( 'hidden' );
         thumbImg.addClass( 'selected' );
         thumbImg.setOpacity( 0.5 );
 
@@ -384,41 +352,38 @@ function loadEventImage( event, frame )
             new Fx.Tween( eventImagePanel, { duration: 500, transition: Fx.Transitions.Sine } ).start( 'opacity', 0, 1 );
         }
 
-        $('eventImageNo').set( 'text', frame.FrameId );
-        $('prevImageBtn').disabled = (frame.FrameId==1);
-        $('nextImageBtn').disabled = (frame.FrameId==event.Frames);
+        $j('#eventImageNo').html(frame.FrameId );
+        $j('#prevImageBtn').disabled = (frame.FrameId==1);
+        $j('#nextImageBtn').disabled = (frame.FrameId==event.Frames);
     }
 }
 
-function hideEventImageComplete()
-{
-    var eventImg = $('eventImage');
-    var thumbImg = $('eventThumb'+$('eventImage').getProperty( 'alt' ));
-    if ( thumbImg ) {
+function hideEventImageComplete() {
+  var eventImg = $j('#eventImage');
+  var thumbImg = $j('#eventThumb'+$j('#eventImage').getProperty( 'alt' ));
+  if ( thumbImg ) {
     thumbImg.removeClass('selected');
     thumbImg.setOpacity( 1.0 );
-    } else {
-      console.log("Unable to find eventThumb at " + 'eventThumb'+$('eventImage').getProperty( 'alt' ) );
-    }
-    $('prevImageBtn').disabled = true;
-    $('nextImageBtn').disabled = true;
-    $('eventImagePanel').setStyle( 'display', 'none' );
-    $('eventImageStats').addClass( 'hidden' );
+  } else {
+    console.log("Unable to find eventThumb at " + 'eventThumb'+eventImg.getProperty( 'alt' ) );
+  }
+  $j('#prevImageBtn').disabled = true;
+  $j('#nextImageBtn').disabled = true;
+  $j('#eventImagePanel').setStyle( 'display', 'none' );
+  $j('#eventImageStats').addClass( 'hidden' );
 }
 
-function hideEventImage()
-{
-    if ( $('eventImagePanel').getStyle( 'display' ) != 'none' )
-        new Fx.Tween( $('eventImagePanel'), { duration: 500, transition: Fx.Transitions.Sine, onComplete: hideEventImageComplete } ).start( 'opacity', 1, 0 );
+function hideEventImage() {
+    if ( $j('#eventImagePanel').getStyle( 'display' ) != 'none' )
+        new Fx.Tween( $j('#eventImagePanel'), { duration: 500, transition: Fx.Transitions.Sine, onComplete: hideEventImageComplete } ).start( 'opacity', 1, 0 );
 }
 
 function resetEventStills()
 {
     hideEventImage();
-    $('eventThumbs').empty();
-    if ( true || !slider )
-    {
-        slider = new Slider( $('thumbsSlider'), $('thumbsKnob'), {
+    $j('#eventThumbs').empty();
+    if ( true || !slider ) {
+        slider = new Slider( $j('#thumbsSlider'), $j('#thumbsKnob'), {
             /*steps: eventData.Frames,*/
             onChange: function( step )
             {
@@ -434,8 +399,8 @@ function resetEventStills()
             }
         } ).set( 0 );
     }
-    if ( $('eventThumbs').getStyle( 'height' ).match( /^\d+/ ) < (parseInt(eventData.Height)+80) )
-        $('eventThumbs').setStyle( 'height', (parseInt(eventData.Height)+80)+'px' );
+    if ( $j('#eventThumbs').getStyle( 'height' ).match( /^\d+/ ) < (parseInt(eventData.Height)+80) )
+        $j('#eventThumbs').setStyle( 'height', (parseInt(eventData.Height)+80)+'px' );
 }
 
 function getFrameResponse( respObj, respText )
@@ -459,12 +424,9 @@ function getFrameResponse( respObj, respText )
     loadEventThumb( eventData, frame, respObj.loopback=="true" );
 }
 
-var frameReq = new Request.JSON( { url: thisUrl, method: 'get', timeout: AJAX_TIMEOUT, link: 'chain', onSuccess: getFrameResponse } );
-
-function frameQuery( eventId, frameId, loadImage )
-{
+function frameQuery( eventId, frameId, loadImage ) {
     var parms = "view=request&request=status&entity=frameimage&id[0]="+eventId+"&id[1]="+frameId+"&loopback="+loadImage;
-    frameReq.send( parms );
+    $j.getJSON( thisUrl, parms, getFrameResponse );
 }
 
 var currFrameId = null;
@@ -489,27 +451,20 @@ function checkFrames( eventId, frameId, loadImage )
     if ( hiFid > eventData.Frames )
         hiFid = eventData.Frames;
 
-    for ( var fid = loFid; fid <= hiFid; fid++ )
-    {
-        if ( !$('eventThumb'+fid) )
-        {
+    for ( var fid = loFid; fid <= hiFid; fid++ ) {
+        if ( ! $j('#eventThumb'+fid) ) {
             var img = new Element( 'img', { 'id': 'eventThumb'+fid, 'src': 'graphics/transparent.gif', 'alt': fid, 'class': 'placeholder' } );
-            img.addEvent( 'click', function () { eventData['frames'][fid] = null; checkFrames( eventId, fid ) } );
+            img.bind( 'click', function () { eventData['frames'][fid] = null; checkFrames( eventId, fid ) } );
             frameQuery( eventId, fid, loadImage && (fid == frameId) );
-            var imgs = $('eventThumbs').getElements( 'img' );
+            var imgs = $j('#eventThumbs').find( 'img' );
             var injected = false;
-            if ( fid < imgs.length )
-            {
+            if ( fid < imgs.length ) {
                 img.inject( imgs[fid-1], 'before' );
                 injected = true;
-            }
-            else
-            {
+            } else {
                 injected = imgs.some(
-                    function( thumbImg, index )
-                    {
-                        if ( parseInt(img.getProperty( 'alt' )) < parseInt(thumbImg.getProperty( 'alt' )) )
-                        {
+                    function( thumbImg, index ) {
+                        if ( parseInt(img.getProperty( 'alt' )) < parseInt(thumbImg.getProperty( 'alt' )) ) {
                             img.inject( thumbImg, 'before' );
                             return( true );
                         }
@@ -517,80 +472,66 @@ function checkFrames( eventId, frameId, loadImage )
                     }
                 );
             }
-            if ( !injected )
-            {
-                img.inject( $('eventThumbs') );
+            if ( ! injected ) {
+                img.inject( $j('#eventThumbs') );
             }
             var scale = parseInt(img.getStyle('height'));
             img.setStyles( {
                 'width': parseInt((eventData.Width*scale)/100),
                 'height': parseInt((eventData.Height*scale)/100)
             } );
-        }
-        else if ( eventData['frames'][fid] )
-        {
-            if ( loadImage && (fid == frameId) )
-            {
+        } else if ( eventData['frames'][fid] ) {
+            if ( loadImage && (fid == frameId) ) {
                 loadEventImage( eventData, eventData['frames'][fid], loadImage );
             }
         }
-    }
-    $('prevThumbsBtn').disabled = (frameId==1);
-    $('nextThumbsBtn').disabled = (frameId==eventData.Frames);
+    } // end foreach frame
+    $j('#prevThumbsBtn').disabled = (frameId==1);
+    $j('#nextThumbsBtn').disabled = (frameId==eventData.Frames);
 }
 
-function locateImage( frameId, loadImage )
-{
+function locateImage( frameId, loadImage ) {
     if ( slider )
         slider.fireEvent( 'tick', slider.toPosition( parseInt((frameId-1)*slider.options.steps/eventData.Frames) ));
     checkFrames( eventData.Id, frameId, loadImage );
     scroll.toElement( 'eventThumb'+frameId );
 }
 
-function prevImage()
-{
+function prevImage() {
     if ( currFrameId > 1 )
         locateImage( parseInt(currFrameId)-1, true );
 }
 
-function nextImage()
-{
+function nextImage() {
     if ( currFrameId < eventData.Frames )
         locateImage( parseInt(currFrameId)+1, true );
 }
 
-function prevThumbs()
-{
+function prevThumbs() {
     if ( currFrameId > 1 )
-        locateImage( parseInt(currFrameId)>10?(parseInt(currFrameId)-10):1, $('eventImagePanel').getStyle('display')!="none" );
+        locateImage( parseInt(currFrameId)>10?(parseInt(currFrameId)-10):1, $j('#eventImagePanel').getStyle('display')!="none" );
 }
 
-function nextThumbs()
-{
+function nextThumbs() {
     if ( currFrameId < eventData.Frames )
-        locateImage( parseInt(currFrameId)<(eventData.Frames-10)?(parseInt(currFrameId)+10):eventData.Frames, $('eventImagePanel').getStyle('display')!="none" );
+        locateImage( parseInt(currFrameId)<(eventData.Frames-10)?(parseInt(currFrameId)+10):eventData.Frames, $j('#eventImagePanel').getStyle('display')!="none" );
 }
 
-function prevEvent()
-{
-    if ( prevEventId )
-    {
+function prevEvent() {
+    if ( prevEventId ) {
         eventQuery( prevEventId );
         streamPrev( true );
     }
 }
 
-function nextEvent()
-{
-    if ( nextEventId )
-    {
+function nextEvent() {
+    if ( nextEventId ) {
         eventQuery( nextEventId );
         streamNext( true );
     }
 }
 
-function getActResponse( respObj, respText )
-{
+function getActResponse( respObj, respText ) {
     if ( checkStreamForErrors( "getActResponse", respObj ) )
         return;
 
@@ -601,61 +542,50 @@ function getActResponse( respObj, respText )
         eventQuery( eventData.Id );
 }
 
-var actReq = new Request.JSON( { url: thisUrl, method: 'get', timeout: AJAX_TIMEOUT, link: 'cancel', onSuccess: getActResponse } );
-
-function actQuery( action, parms )
-{
+function actQuery( action, parms ) {
     var actParms = "view=request&request=event&id="+eventData.Id+"&action="+action;
     if ( parms != null )
         actParms += "&"+Object.toQueryString( parms );
-    actReq.send( actParms );
+    $j.getJSON( thisUrl, actParms, getActResponse );
 }
 
-function deleteEvent()
-{
+function deleteEvent() {
     actQuery( 'delete' );
     streamNext( true );
 }
 
-function renameEvent()
-{
-    var newName = $('eventName').get('value');
+function renameEvent() {
+    var newName = $j('#eventName').get('value');
     actQuery( 'rename', { eventName: newName } );
 }
 
-function editEvent()
-{
+function editEvent() {
     createPopup( '?view=eventdetail&eid='+eventData.Id, 'zmEventDetail', 'eventdetail' );
 }
 
-function exportEvent()
-{
+function exportEvent() {
     createPopup( '?view=export&eid='+eventData.Id, 'zmExport', 'export' );
 }
 
-function archiveEvent()
-{
+function archiveEvent() {
     actQuery( 'archive' );
 }
 
-function unarchiveEvent()
-{
+function unarchiveEvent() {
     actQuery( 'unarchive' );
 }
 
-function showEventFrames()
-{
+function showEventFrames() {
     createPopup( '?view=frames&eid='+eventData.Id, 'zmFrames', 'frames' );
 }
 
-function showVideo()
-{
-    $('eventStills').addClass( 'hidden' );
-    $('imageFeed').addClass('hidden');
-    $('eventVideo').removeClass( 'hidden' );
+function showVideo() {
+    $j('#eventStills').addClass( 'hidden' );
+    $j('#imageFeed').addClass('hidden');
+    $j('#eventVideo').removeClass( 'hidden' );
     
-    $('stillsEvent').removeClass( 'hidden' );
-    $('videoEvent').addClass( 'hidden' );
+    $j('#stillsEvent').removeClass( 'hidden' );
+    $j('#videoEvent').addClass( 'hidden' );
     
     streamMode = 'video';
     
@@ -663,9 +593,9 @@ function showVideo()
 
 function showStills()
 {
-    $('eventStills').removeClass( 'hidden' );
-    $('imageFeed').removeClass('hidden');
-    $('eventVideo').addClass( 'hidden' );		
+    $j('#eventStills').removeClass( 'hidden' );
+    $j('#imageFeed').removeClass('hidden');
+    $j('#eventVideo').addClass( 'hidden' );		
 
     if (vid && ( vid.paused != true ) ) {
       // Pause the video
@@ -676,8 +606,8 @@ function showStills()
         //playButton.innerHTML = "Play";
     }
 	
-    $('stillsEvent').addClass( 'hidden' );
-    $('videoEvent').removeClass( 'hidden' );
+    $j('#stillsEvent').addClass( 'hidden' );
+    $j('#videoEvent').removeClass( 'hidden' );
 	
     streamMode = 'stills';
 	
@@ -692,12 +622,12 @@ function showStills()
         );
     }
     resetEventStills();
-    $(window).addEvent( 'resize', updateStillsSizes );
+    $(window).bind( 'resize', updateStillsSizes );
 }
 
 function showFrameStats()
 {
-    var fid = $('eventImageNo').get('text');
+    var fid = $j('#eventImageNo').get('text');
     createPopup( '?view=stats&eid='+eventData.Id+'&fid='+fid, 'zmStats', 'stats', eventData.Width, eventData.Height );
 }
 
@@ -705,8 +635,8 @@ function showFrameStats()
 function drawProgressBar()
 {
     var barWidth = 0;
-    $('progressBar').addClass( 'invisible' );
-    var cells = $('progressBar').getElements( 'div' );
+    $j('#progressBar').addClass( 'invisible' );
+    var cells = $j('#progressBar').find( 'div' );
     var cellWidth = parseInt( eventData.Width/$$(cells).length );
     $$(cells).forEach(
         function( cell, index )
@@ -718,19 +648,19 @@ function drawProgressBar()
             var offset = parseInt((index*eventData.Length)/$$(cells).length);
             $(cell).setProperty( 'title', '+'+secsToTime(offset)+'s' );
             $(cell).removeEvent( 'click' );
-            $(cell).addEvent( 'click', function(){ streamSeek( offset ); } );
+            $(cell).bind( 'click', function(){ streamSeek( offset ); } );
             barWidth += $(cell).getCoordinates().width;
         }
     );
-    $('progressBar').setStyle( 'width', barWidth );
-    $('progressBar').removeClass( 'invisible' );
+    $j('#progressBar').setStyle( 'width', barWidth );
+    $j('#progressBar').removeClass( 'invisible' );
 }
 
 function updateProgressBar()
 {
     if ( eventData && streamStatus )
     {
-        var cells = $('progressBar').getElements( 'div' );
+        var cells = $j('#progressBar').find( 'div' );
         var completeIndex = parseInt((($$(cells).length+1)*streamStatus.progress)/eventData.Length);
         $$(cells).forEach(
             function( cell, index )
@@ -770,17 +700,16 @@ function setupListener()
 // I think this stuff was to use our existing buttons instead of the videojs controls. 
 
 	// Buttons
-	var playButton = document.getElementById("play-pause");
-	var muteButton = document.getElementById("mute");
-	var fullScreenButton = document.getElementById("full-screen");
+	var playButton = $j("#play-pause");
+	var muteButton = $j("#mute");
+	var fullScreenButton = $j("#full-screen");
 
 	// Sliders
-	var seekBar = document.getElementById("seekbar");
-	var volumeBar = document.getElementById("volume-bar");
-
+	var seekBar = $j("#seekbar");
+	var volumeBar = $j("#volume-bar");
 
 	// Event listener for the play/pause button
-	playButton.addEventListener("click", function() {
+	playButton.bind("click", function() {
 		if (vid.paused == true) {
 			// Play the video
 			vid.play();
@@ -798,7 +727,7 @@ function setupListener()
 
 
 	// Event listener for the mute button
-	muteButton.addEventListener("click", function() {
+	muteButton.bind("click", function() {
 		if (vid.muted == false) {
 			// Mute the video
 			vid.muted = true;
@@ -816,7 +745,7 @@ function setupListener()
 
 
 	// Event listener for the full-screen button
-	fullScreenButton.addEventListener("click", function() {
+	fullScreenButton.bind("click", function() {
 		if (vid.requestFullscreen) {
 			vid.requestFullscreen();
 		} else if (vid.mozRequestFullScreen) {
@@ -828,7 +757,7 @@ function setupListener()
 
 
 	// Event listener for the seek bar
-	seekBar.addEventListener("change", function() {
+	seekBar.bind("change", function() {
 		// Calculate the new time
 		var time = vid.duration * (seekBar.value / 100);
 
@@ -838,7 +767,7 @@ function setupListener()
 
 	
 	// Update the seek bar as the video plays
-	vid.addEventListener("timeupdate", function() {
+	vid.bind("timeupdate", function() {
 		// Calculate the slider value
 		var value = (100 / vid.duration) * vid.currentTime;
 
@@ -847,17 +776,17 @@ function setupListener()
 	});
 
 	// Pause the video when the seek handle is being dragged
-	seekBar.addEventListener("mousedown", function() {
+	seekBar.bind("mousedown", function() {
 		vid.pause();
 	});
 
 	// Play the video when the seek handle is dropped
-	seekBar.addEventListener("mouseup", function() {
+	seekBar.bind("mouseup", function() {
 		vid.play();
 	});
 
 	// Event listener for the volume bar
-	volumeBar.addEventListener("change", function() {
+	volumeBar.bind("change", function() {
 		// Update the video volume
 		vid.volume = volumeBar.value;
 	});
@@ -865,7 +794,7 @@ function setupListener()
 
 function initPage() {
   //FIXME prevent blocking...not sure what is happening or best way to unblock
-  if ( $('videoobj') ) {
+  if ( $j('#videoobj') ) {
     vid = videojs("videoobj");
   }
   if ( vid ) {
@@ -891,13 +820,13 @@ function initPage() {
     eventQuery.pass( eventData.Id ).delay( 500 );
 
     if ( canStreamNative ) {
-      var streamImg = $('imageFeed').getElement('img');
+      var streamImg = $j('#imageFeed').getElement('img');
       if ( !streamImg )
-        streamImg = $('imageFeed').getElement('object');
-      $(streamImg).addEvent( 'click', function( event ) { handleClick( event ); } );
+        streamImg = $j('#imageFeed').getElement('object');
+      $(streamImg).bind( 'click', function( event ) { handleClick( event ); } );
     }
   }
 }
 
 // Kick everything off
-window.addEvent( 'domready', initPage );
+$j(window).bind( 'domready', initPage );

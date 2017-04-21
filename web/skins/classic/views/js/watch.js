@@ -470,13 +470,13 @@ function getEventCmdResponse( respObj, respText ) {
     var rows = $(eventListBody).getElements( 'tr' );
     for ( var i = 0; i < rows.length; i++ ) {
       if ( !rows[i].hasClass( 'updated' ) ) {
-        rows[i].destroy();
+        rows[i].remove();
         rows.splice( i, 1 );
         i--;
       }
     }
     while ( rows.length > maxDisplayEvents ) {
-      rows[rows.length-1].destroy();
+      rows[rows.length-1].remove();
       rows.length--;
     }
   } else

@@ -290,8 +290,7 @@ function updateFilterSelectors()
     );
 }
 
-function initPage()
-{
+function initPage() {
     displayLimit = initialDisplayLimit;
     for ( var i = 1; i <= 9; i++ )
         logCodes[''+i] = 'DB'+i;
@@ -302,23 +301,20 @@ function initPage()
             sortReverse: true
         }
     );
-    logTable.addEvent( 'sort', function( tbody, index )
-        {
+    logTable.addEvent( 'sort', function( tbody, index ) {
             var header = tbody.getParent( 'table' ).getElement( 'thead' );
             var columns = header.getElement( 'tr' ).getElements( 'th' );
             var column = columns[index];
             sortReversed = column.hasClass( 'table-th-sort-rev' );
-            if ( logCount > displayLimit )
-            {
+            if ( logCount > displayLimit ) {
                 var rows = tbody.getElements( 'tr' );
                 var startIndex;
                 if ( sortReversed )
                     startIndex = displayLimit;
                 else
                     startIndex = 0;;
-                for ( var i = startIndex; logCount > displayLimit; i++ )
-                {
-                    rows[i].destroy();
+                for ( var i = startIndex; logCount > displayLimit; i++ ) {
+                    rows[i].remove();
                     logCount--;
                 }
                 $('displayLogs').set('text',logCount);
@@ -335,4 +331,4 @@ function initPage()
 }
 
 // Kick everything off
-window.addEvent( 'domready', initPage );
+$j( initPage );

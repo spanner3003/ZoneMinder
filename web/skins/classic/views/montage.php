@@ -18,9 +18,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
-if ( !canView( 'Stream' ) ) {
-    $view = 'error';
-    return;
+if ( ! canView( 'Stream' ) ) {
+  $view = 'error';
+  return;
 }
 
 require_once( 'includes/Monitor.php' );
@@ -88,6 +88,7 @@ $layouts = array(
     'montage_3wide50enlarge.css' => translate('Mtg3widgrx'),
 );
 
+$layout = '';
 if ( isset($_COOKIE['zmMontageLayout']) )
     $layout = $_COOKIE['zmMontageLayout'];
 
@@ -140,14 +141,16 @@ foreach ( $monitors as $monitor ) {
 <?php
     if ( !ZM_WEB_COMPACT_MONTAGE ) {
 ?>
-            <div id="monitorState<?php echo $monitor->Id() ?>" class="monitorState idle"><?php echo translate('State') ?>:&nbsp;<span id="stateValue<?php echo $monitor->Id() ?>"></span>&nbsp;-&nbsp;<span id="fpsValue<?php echo $monitor->Id() ?>"></span>&nbsp;fps</div>
+            <div id="monitorState<?php echo $monitor->Id() ?>" class="monitorState idle">
+            <?php echo translate('State') ?>:&nbsp;<span id="stateValue<?php echo $monitor->Id() ?>"></span>&nbsp;-&nbsp;<span id="fpsValue<?php echo $monitor->Id() ?>"></span>&nbsp;fps
+            </div>
 <?php
     }
 ?>
           </div>
         </div>
 <?php
-}
+} // end foreach monitor
 ?>
       </div>
     </div>

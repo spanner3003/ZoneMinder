@@ -1,3 +1,4 @@
+// This code is taken from https://github.com/xbgmsharp/videojs-rotatezoom/blob/master/src/videojs.zoomrotate.js
 console.log('zoomrotate: Start');
 
 (function(){
@@ -41,7 +42,10 @@ console.log('zoomrotate: Start');
         poster = this.el().getElementsByTagName('div')[1]; // div vjs-poster
 
         console.log('zoomrotate: '+video.style);
-        console.log('zoomrotate: '+poster.style);
+        if ( poster )
+          console.log('zoomrotate: '+poster.style);
+        else  
+          console.log('zoomrotate: no poster found.');
         console.log('zoomrotate: '+options.rotate);
         console.log('zoomrotate: '+options.zoom);
 
@@ -64,7 +68,8 @@ console.log('zoomrotate: Start');
         /* Let's do it */
         player.style.overflow = 'hidden';
         video.style[prop]='scale('+options.zoom+') rotate('+options.rotate+'deg)';
-        poster.style[prop]='scale('+options.zoom+') rotate('+options.rotate+'deg)';
+        if ( poster )
+          poster.style[prop]='scale('+options.zoom+') rotate('+options.rotate+'deg)';
         console.log('zoomrotate: Register end');
     });
 })();

@@ -74,21 +74,23 @@ function xhtmlHeaders( $file, $title )
 <?php
     }
 ?>
+<!--
   <script type="text/javascript" src="tools/mootools/mootools-core.js"></script>
   <script type="text/javascript" src="tools/mootools/mootools-more.js"></script>
   <script type="text/javascript" src="js/mootools.ext.js"></script>
+-->
 <?php if ( !in_array($basename, $bad_views) ) { ?>
   <!--<script type="text/javascript" src="js/overlay.js"></script>-->
   <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/jquery-1.11.3.js"></script>
   <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/jquery-ui-1.11.3.js"></script>
   <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/js.cookie-2.1.4.min.js"></script>
   <script type="text/javascript">
   //<![CDATA[
   <!--
-var $j = jQuery.noConflict();
+ var $j = jQuery.noConflict();
 // $j is now an alias to the jQuery function; creating the new alias is optional.
 
-<?php include("skins/$skin/views/js/state.js.php")?>
   //-->
   //]]>
 </script>
@@ -98,10 +100,10 @@ var $j = jQuery.noConflict();
   <script src='https://www.google.com/recaptcha/api.js'></script>
 <?php } else if ( $title == 'Event' ) {
 ?>
-        <link href="//vjs.zencdn.net/4.11/video-js.css" rel="stylesheet">
-        <script src="//vjs.zencdn.net/4.11/video.js"></script>
-        <script src="./js/videojs.zoomrotate.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+        <link href="skins/<?php echo $skin; ?>/js/video.js/video-js.css" rel="stylesheet">
+        <script src="skins/<?php echo $skin; ?>/js/video.js/video.js"></script>
+        <!--<script src="./js/videojs.zoomrotate.js"></script>-->
+        <script src="skins/<?php echo $skin; ?>/js/moment.min.js"></script>
 <?php
     }
     if ( $skinJsPhpFile )
