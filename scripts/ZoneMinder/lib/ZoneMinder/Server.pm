@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # ==========================================================================
 #
@@ -43,7 +43,7 @@ our @ISA = qw(Exporter ZoneMinder::Base);
 our %EXPORT_TAGS = (
     functions => [ qw(
     ) ]
-);
+    );
 push( @{$EXPORT_TAGS{all}}, @{$EXPORT_TAGS{$_}} ) foreach keys %EXPORT_TAGS;
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -117,8 +117,8 @@ ZoneMinder::Database - Perl extension for blah blah blah
 
 =head1 SYNOPSIS
 
-  use ZoneMinder::Server;
-  blah blah blah
+use ZoneMinder::Server;
+blah blah blah
 
 =head1 DESCRIPTION
 

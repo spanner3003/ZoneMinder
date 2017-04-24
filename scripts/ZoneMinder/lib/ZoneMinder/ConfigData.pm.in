@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # ==========================================================================
 #
@@ -46,7 +46,7 @@ our %EXPORT_TAGS = (
         @options
         %options_hash
     ) ]
-);
+    );
 push( @{$EXPORT_TAGS{all}}, @{$EXPORT_TAGS{$_}} ) foreach keys %EXPORT_TAGS;
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'data'} } );
@@ -65,112 +65,104 @@ use Carp;
 
 our $configInitialised = 0;
 
-sub INIT
-{
+sub INIT {
     initialiseConfig();
 }
 
 # Types
-our %types =
-(
+our %types = (
     string => {
-        db_type     =>"string",
-        hint        =>"string",
-        pattern     =>qr|^(.+)$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "string",
+     pattern     => qr|^(.+)$|,
+     format      => q( $1 )
     },
     alphanum => {
-        db_type     =>"string",
-        hint        =>"alphanumeric",
-        pattern     =>qr|^([a-zA-Z0-9-_]+)$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "alphanumeric",
+     pattern     => qr|^([a-zA-Z0-9-_]+)$|,
+     format      => q( $1 )
     },
     text => {
-        db_type     =>"text",
-        hint        =>"free text",
-        pattern     =>qr|^(.+)$|,
-        format      =>q( $1 )
+     db_type     => "text",
+     hint        => "free text",
+     pattern     => qr|^(.+)$|,
+     format      => q( $1 )
     },
     boolean => {
-        db_type     =>"boolean",
-        hint        =>"yes|no",
-        pattern     =>qr|^([yn])|i,
-        check       =>q( $1 ),
-        format      =>q( ($1 =~ /^y/)
-                          ? "yes"
-                          : "no"
-                       )
+     db_type     => "boolean",
+     hint        => "yes|no",
+     pattern     => qr|^([yn])|i,
+     check       => q( $1 ),
+     format      => q( ($1 =~ /^y/) ? "yes" : "no" )
     },
     integer => {
-        db_type     =>"integer",
-        hint        =>"integer",
-        pattern     =>qr|^(\d+)$|,
-        format      =>q( $1 )
+     db_type     => "integer",
+     hint        => "integer",
+     pattern     => qr|^(\d+)$|,
+     format      => q( $1 )
     },
     decimal => {
-        db_type     =>"decimal",
-        hint        =>"decimal",
-        pattern     =>qr|^(\d+(?:\.\d+)?)$|,
-        format      =>q( $1 )
+     db_type     => "decimal",
+     hint        => "decimal",
+     pattern     => qr|^(\d+(?:\.\d+)?)$|,
+     format      => q( $1 )
     },
     hexadecimal => {
-        db_type     =>"hexadecimal",
-        hint        =>"hexadecimal",
-        pattern     =>qr|^(?:0x)?([0-9a-f]{1,8})$|,
-        format      =>q( "0x".$1 )
+     db_type     => "hexadecimal",
+     hint        => "hexadecimal",
+     pattern     => qr|^(?:0x)?([0-9a-f]{1,8})$|,
+     format      => q( "0x".$1 )
     },
     tristate => {
-        db_type     =>"string",
-        hint        =>"auto|yes|no",
-        pattern     =>qr|^([ayn])|i, check=>q( $1 ),
-        format      =>q( ($1 =~ /^y/)
-                         ? "yes"
-                         : ($1 =~ /^n/ ? "no" : "auto" )
-                       )
+     db_type     => "string",
+     hint        => "auto|yes|no",
+     pattern     => qr|^([ayn])|i, check=>q( $1 ),
+     format      => q( ($1 =~ /^y/) ? "yes" : ($1 =~ /^n/ ? "no" : "auto" ) )
     },
     abs_path => {
-        db_type     =>"string",
-        hint        =>"/absolute/path/to/somewhere",
-        pattern     =>qr|^((?:/[^/]*)+?)/?$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "/absolute/path/to/somewhere",
+     pattern     => qr|^((?:/[^/]*)+?)/?$|,
+     format      => q( $1 )
     },
     rel_path => {
-        db_type     =>"string",
-        hint        =>"relative/path/to/somewhere",
-        pattern     =>qr|^((?:[^/].*)?)/?$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "relative/path/to/somewhere",
+     pattern     => qr|^((?:[^/].*)?)/?$|,
+     format      => q( $1 )
     },
     directory => {
-        db_type     =>"string",
-        hint        =>"directory",
-        pattern     =>qr|^([a-zA-Z0-9-_.]+)$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "directory",
+     pattern     => qr|^([a-zA-Z0-9-_.]+)$|,
+     format      => q( $1 )
     },
     file => {
-        db_type     =>"string",
-        hint        =>"filename",
-        pattern     =>qr|^([a-zA-Z0-9-_.]+)$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "filename",
+     pattern     => qr|^([a-zA-Z0-9-_.]+)$|,
+     format      => q( $1 )
     },
     hostname => {
-        db_type     =>"string",
-        hint        =>"host.your.domain",
-        pattern     =>qr|^([a-zA-Z0-9_.-]+)$|,
-        format      =>q( $1 )
+     db_type     => "string",
+     hint        => "host.your.domain",
+     pattern     => qr|^([a-zA-Z0-9_.-]+)$|,
+     format      => q( $1 )
     },
     url => {
-        db_type     =>"string",
-        hint        =>"http://host.your.domain/",
-        pattern     =>qr|^(?:http://)?(.+)$|,
-        format      =>q( "http://".$1 )
+     db_type     => "string",
+     hint        => "http://host.your.domain/",
+     pattern     => qr|^(?:http://)?(.+)$|,
+     format      => q( "http://".$1 )
     },
     email => {
-        db_type     =>"string",
-        hint        =>"your.name\@your.domain",
-        pattern     =>qr|^([a-zA-Z0-9_.-]+)\@([a-zA-Z0-9_.-]+)$|,
-        format      =>q( $1\@$2 )
+     db_type     => "string",
+     hint        => "your.name\@your.domain",
+     pattern     => qr|^([a-zA-Z0-9_.-]+)\@([a-zA-Z0-9_.-]+)$|,
+     format      => q( $1\@$2 )
     },
-);
+ );
 
 sub qqq {    ## Un-pad paragraph of text.
     local $_ = shift;
@@ -178,8 +170,7 @@ sub qqq {    ## Un-pad paragraph of text.
     return $_;
 }
 
-our @options =
-(
+our @options = (
     {
         name        => "ZM_SKIN_DEFAULT",
         default     => "classic",
@@ -255,10 +246,10 @@ our @options =
         "),
         requires    => [ { name=>"ZM_OPT_USE_AUTH", value=>"yes" } ],
         type        => {
-            db_type     =>"string",
-            hint        =>"builtin|remote",
-            pattern     =>qr|^([br])|i,
-            format      =>q( $1 =~ /^b/ ? "builtin" : "remote" )
+      db_type     => "string",
+      hint        => "builtin|remote",
+      pattern     => qr|^([br])|i,
+      format      => q( $1 =~ /^b/ ? "builtin" : "remote" )
         },
         category    => "system",
     },
@@ -280,13 +271,10 @@ our @options =
         "),
         requires    => [ { name=>"ZM_OPT_USE_AUTH", value=>"yes" } ],
         type        => {
-            db_type     =>"string",
-            hint        =>"hashed|plain|none",
-            pattern     =>qr|^([hpn])|i,
-            format      =>q( ($1 =~ /^h/)
-                             ? "hashed"
-                             : ($1 =~ /^p/ ? "plain" : "none" )
-                           )
+      db_type     => "string",
+      hint        => "hashed|plain|none",
+      pattern     => qr|^([hpn])|i,
+      format      => q( ($1 =~ /^h/) ? "hashed" : ($1 =~ /^p/ ? "plain" : "none" ) )
         },
         category    => "system",
     },
@@ -358,6 +346,26 @@ our @options =
         category    => "system",
     },
     {
+    name        => "ZM_ENABLE_CSRF_MAGIC",
+    default     => "no",
+    description => "Enable csrf-magic library",
+    help        => qqq("
+      CSRF stands for Cross-Site Request Forgery which, under specific
+      circumstances, can allow an attacker to perform any task your
+      ZoneMinder user account has permission to perform. To accomplish
+      this, the attacker must write a very specific web page and get
+      you to navigate to it, while you are logged into the ZoneMinder
+      web console at the same time. Enabling ZM_ENABLE_CSRF_MAGIC will
+      help mitigate these kinds of attackes. Be warned this feature
+      is experimental and may cause problems, particularly with the API.
+      If you find a false positive and can document how to reproduce it,
+      then please report it. This feature defaults to OFF currently due to
+      its experimental nature.
+    "),
+    type        => $types{boolean},
+    category    => "system",
+  },
+  {
         name        => "ZM_OPT_USE_API",
         default     => "yes",
         description => "Enable ZoneMinder APIs",
@@ -373,7 +381,7 @@ our @options =
         type        => $types{boolean},
         category    => "system",
     },
-# PP - Google reCaptcha settings
+  # PP - Google reCaptcha settings
     {
         name        => "ZM_OPT_USE_GOOG_RECAPTCHA",
         default     => "no",
@@ -895,10 +903,10 @@ our @options =
             HTTP/1.0 if necessary to resolve particular issues.
         "),
         type        => {
-            db_type     =>"string",
-            hint        =>"1.1|1.0",
-            pattern     =>qr|^(1\.[01])$|,
-            format      =>q( $1?$1:"" )
+      db_type     => "string",
+      hint        => "1.1|1.0",
+      pattern     => qr|^(1\.[01])$|,
+      format      => q( $1?$1:"" )
         },
         category    => "network",
     },
@@ -1077,10 +1085,10 @@ our @options =
             you will also need to set a level and component below
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+      db_type     => "integer",
+      hint        => "None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
+      pattern     => qr|^(\d+)$|,
+      format      => q( $1 )
         },
         category    => "logging",
     },
@@ -1107,10 +1115,10 @@ our @options =
             and component below
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+      db_type     => "integer",
+      hint        => "None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
+      pattern     => qr|^(\d+)$|,
+      format      => q( $1 )
         },
         category    => "logging",
     },
@@ -1134,10 +1142,10 @@ our @options =
             you will also need to set a level and component below
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+      db_type     => "integer",
+      hint        => "None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
+      pattern     => qr|^(\d+)$|,
+      format      => q( $1 )
         },
         category    => "logging",
     },
@@ -1165,10 +1173,10 @@ our @options =
             also need to set a level and component below
         "),
         type        => {
-            db_type     =>"integer",
-            hint        =>"None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+      db_type     => "integer",
+      hint        => "None=-5|Panic=-4|Fatal=-3|Error=-2|Warning=-1|Info=0|Debug=1",
+      pattern     => qr|^(\d+)$|,
+      format      => q( $1 )
         },
         category    => "logging",
     },
@@ -1248,10 +1256,10 @@ our @options =
         "),
         requires    => [ { name => "ZM_LOG_DEBUG", value => "yes" } ],
         type        => {
-            db_type     =>"integer",
-            hint        =>"1|2|3|4|5|6|7|8|9",
-            pattern     =>qr|^(\d+)$|,
-            format      =>q( $1 )
+      db_type     => "integer",
+      hint        => "1|2|3|4|5|6|7|8|9",
+      pattern     => qr|^(\d+)$|,
+      format      => q( $1 )
         },
         category    => "logging",
     },
@@ -1563,6 +1571,19 @@ our @options =
         category    => "web",
     },
     {
+    name        => 'ZM_WEB_EVENT_DISK_SPACE',
+    default     => '',
+    description => "Whether to show disk space used by each event.",
+    help        => qqq("Adds another column to the listing of events 
+        showing the disk space used by the event.  This will impart a small
+        overhead as it will call du on the event directory.  In practice 
+        this overhead is fairly small but may be noticeable on IO-constrained
+        systems.
+        "),
+    type        => $types{string},
+    category    => "web",
+  },
+  {
         name        => "ZM_WEB_RESIZE_CONSOLE",
         default     => "yes",
         description => "Should the console window resize itself to fit",
@@ -2211,12 +2232,12 @@ our @options =
     {
         name        => "ZM_EMAIL_TEXT",
         default     => 'subject = "ZoneMinder: Alarm - %MN%-%EI% (%ESM% - %ESA% %EFA%)"
-body = "
-Hello,
+      body = "
+      Hello,
 
-An alarm has been detected on your installation of the ZoneMinder.
+    An alarm has been detected on your installation of the ZoneMinder.
 
-The details are as follows :-
+      The details are as follows :-
 
   Monitor  : %MN%
   Event Id : %EI%
@@ -2224,9 +2245,9 @@ The details are as follows :-
   Frames   : %EF% (%EFA%)
   Scores   : t%EST% m%ESM% a%ESA%
 
-This alarm was matched by the %FN% filter and can be viewed at %EPS%
+      This alarm was matched by the %FN% filter and can be viewed at %EPS%
 
-ZoneMinder"',
+      ZoneMinder"',
         description => "The text of the email used to send matching event details",
         requires    => [ { name => "ZM_OPT_EMAIL", value => "yes" } ],
         help        => qqq("
@@ -2251,11 +2272,11 @@ ZoneMinder"',
     {
         name        => "ZM_EMAIL_BODY",
         default     => "
-Hello,
+      Hello,
 
-An alarm has been detected on your installation of the ZoneMinder.
+    An alarm has been detected on your installation of the ZoneMinder.
 
-The details are as follows :-
+      The details are as follows :-
 
   Monitor  : %MN%
   Event Id : %EI%
@@ -2263,9 +2284,9 @@ The details are as follows :-
   Frames   : %EF% (%EFA%)
   Scores   : t%EST% m%ESM% a%ESA%
 
-This alarm was matched by the %FN% filter and can be viewed at %EPS%
+      This alarm was matched by the %FN% filter and can be viewed at %EPS%
 
-ZoneMinder",
+      ZoneMinder",
         description => "The body of the email used to send matching event details",
         requires    => [ { name => "ZM_OPT_EMAIL", value => "yes" } ],
         help        => qqq("
@@ -2309,7 +2330,7 @@ ZoneMinder",
     {
         name        => "ZM_MESSAGE_TEXT",
         default     => 'subject = "ZoneMinder: Alarm - %MN%-%EI%"
-body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% score."',
+      body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% score."',
         description => "The text of the message used to send matching event details",
         requires    => [ { name => "ZM_OPT_MESSAGE", value => "yes" } ],
         help        => qqq("
@@ -2638,7 +2659,7 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
             This can be used by the experimental motion tracking feature or
             your own custom extensions. In the alarmed or filtered pixels
             mode this is a simple midpoint between the extents of the
-            detected pxiesl. However in the blob method this can instead be
+        detected pixels. However in the blob method this can instead be
             calculated using weighted pixel locations to give more accurate
             positioning for irregularly shaped blobs. This method, while
             more precise is also slower and so is turned off by default.
@@ -3896,27 +3917,22 @@ body = "ZM alarm detected - %EL% secs, %EF%/%EFA% frames, t%EST%/m%ESM%/a%ESA% s
         type        => $types{string},
         category    => "mail",
     },
-);
+  );
 
 our %options_hash = map { ( $_->{name}, $_ ) } @options;
 
 # This function should never need to be called explicitly, except if 
 # this module is 'require'd rather than 'use'd. See zmconfgen.pl.
-sub initialiseConfig
-{
+sub initialiseConfig {
   return if ( $configInitialised );
 
 # Do some initial data munging to finish the data structures
 # Create option ids
   my $option_id = 0;
-  foreach my $option ( @options )
-  {
-    if ( defined($option->{default}) )
-    {
+  foreach my $option ( @options ) {
+    if ( defined($option->{default}) ) {
       $option->{value} = $option->{default}
-    }
-    else
-    {
+    } else {
       $option->{value} = '';
     }
 #next if ( $option->{category} eq 'hidden' );
@@ -3934,11 +3950,11 @@ ZoneMinder::ConfigData - ZoneMinder Configuration Data module
 
 =head1 SYNOPSIS
 
-  use ZoneMinder::ConfigData;
-  use ZoneMinder::ConfigData qw(:all);
+use ZoneMinder::ConfigData;
+use ZoneMinder::ConfigData qw(:all);
 
-  loadConfigFromDB();
-  saveConfigToDB();
+loadConfigFromDB();
+saveConfigToDB();
 
 =head1 DESCRIPTION
 
