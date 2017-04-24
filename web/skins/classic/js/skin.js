@@ -25,17 +25,17 @@
 var popupOptions = "resizable,scrollbars,status=no";
 
 function checkSize() {
-  if (window.outerHeight) {
+  if ( window.outerHeight ) {
     var w = window.outerWidth;
     var prevW = w;
     var h = window.outerHeight;
     var prevH = h;
-    if (h > screen.availHeight)
-      h  = screen.availHeight;
-    if (w > screen.availWidth)
-      w  = screen.availWidth;
-    if (w != prevW || h != prevH)
-      window.resizeTo(w,h);
+    if ( h > screen.availHeight )
+      h = screen.availHeight;
+    if ( w > screen.availWidth )
+      w = screen.availWidth;
+    if ( w != prevW || h != prevH )
+      window.resizeTo( w, h );
   }
 }
 
@@ -52,7 +52,7 @@ function getPopupSize( tag, width, height ) {
   }
   if ( popupSize.width && popupSize.height ) {
     if ( width || height )
-      Warning( "Ignoring passed dimensions "+width+"x"+height+" when getting popup size for tag '"+tag+"'"  );
+      Warning( "Ignoring passed dimensions "+width+"x"+height+" when getting popup size for tag '"+tag+"'" );
     return( popupSize );
   }
   if ( popupSize.addWidth ) {
@@ -237,18 +237,13 @@ function submitTab( tab )
   form.submit();
 }
 
-function configureDeleteButton( element )
-{
+function configureDeleteButton( element ) {
   var form = element.form;
   var checked = element.checked;
-  if ( !checked )
-  {
-    for ( var i = 0; i < form.elements.length; i++ )
-    {
-      if ( form.elements[i].name == element.name )
-      {
-        if ( form.elements[i].checked )
-        {
+  if ( ! checked ) {
+    for ( var i = 0; i < form.elements.length; i++ ) {
+      if ( form.elements[i].name == element.name ) {
+        if ( form.elements[i].checked ) {
           checked = true;
           break;
         }
@@ -272,31 +267,59 @@ if ( focusWindow ) {
 
 $j(window).bind( 'domready', checkSize );
 
-function convertLabelFormat(LabelFormat, monitorName){
+function convertLabelFormat( LabelFormat, monitorName ) {
   //convert label format from strftime to moment's format (modified from
   //https://raw.githubusercontent.com/benjaminoakes/moment-strftime/master/lib/moment-strftime.js
   //added %f and %N below (TODO: add %Q)
-  var replacements = { a: 'ddd', A: 'dddd', b: 'MMM', B: 'MMMM', d: 'DD', e: 'D', F: 'YYYY-MM-DD', H: 'HH', I: 'hh', j: 'DDDD', k: 'H', l: 'h', m: 'MM', M: 'mm', p: 'A', S: 'ss', u: 'E', w: 'd', W: 'WW', y: 'YY', Y: 'YYYY', z: 'ZZ', Z: 'z', 'f': 'SS', 'N': "["+monitorName+"]", '%': '%' };
-  var momentLabelFormat = Object.keys(replacements).reduce(function (momentFormat, key) {
+  var replacements = {
+    'a': 'ddd',
+    'A': 'dddd',
+    'b': 'MMM',
+    'B': 'MMMM',
+    'd': 'DD',
+    'e': 'D',
+    'F': 'YYYY-MM-DD',
+    'H': 'HH',
+    'I': 'hh',
+    'j': 'DDDD',
+    'k': 'H',
+    'l': 'h',
+    'm': 'MM',
+    'M': 'mm',
+    'p': 'A',
+    'S': 'ss',
+    'u': 'E',
+    'w': 'd',
+    'W': 'WW',
+    'y': 'YY',
+    'Y': 'YYYY',
+    'z': 'ZZ',
+    'Z': 'z',
+    'f': 'SS',
+    'N': "["+monitorName+"]",
+    '%': '%' };
+  var momentLabelFormat = Object.keys(replacements).reduce(function( momentFormat, key ) {
       var value = replacements[key];
       return momentFormat.replace("%" + key, value);
-      }, LabelFormat);
+      }, LabelFormat );
   return momentLabelFormat;
 }
 
-function addVideoTimingTrack(video, LabelFormat, monitorName, duration, startTime){
-  var labelFormat = convertLabelFormat(LabelFormat, monitorName);
-  var webvttformat = 'HH:mm:ss.SSS', webvttdata="WEBVTT\n\n";
+function addVideoTimingTrack( video, LabelFormat, monitorName, duration, startTime ) {
+  var labelFormat = convertLabelFormat( LabelFormat, monitorName );
+  var webvttformat = 'HH:mm:ss.SSS';
+  var webvttdata="WEBVTT\n\n";
 
   startTime = moment(startTime);
 
-  var seconds = moment({s:0}), endduration = moment({s:duration});
-  while(seconds.isBefore(endduration)){
+  var seconds = moment( {s:0} );
+  var endduration = moment( {s:duration} );
+  while ( seconds.isBefore( endduration ) ) {
     webvttdata += seconds.format(webvttformat) + " --> ";
-    seconds.add(1,'s');
+    seconds.add( 1, 's' );
     webvttdata += seconds.format(webvttformat) + "\n";
     webvttdata += startTime.format(labelFormat) + "\n\n";
-    startTime.add(1, 's');
+    startTime.add( 1, 's' );
   }
   var track = document.createElement('track');
   track.kind = "captions";

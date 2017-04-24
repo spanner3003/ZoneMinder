@@ -12,7 +12,7 @@ function Monitor( monitorData ) {
 
   this.start = function( delay ) {
     this.streamCmdTimer = setTimeout( delay, this );
-  }
+  };
 
   this.setStateClass = function( element, stateClass ) {
     if ( !element.hasClass( stateClass ) ) {
@@ -24,7 +24,7 @@ function Monitor( monitorData ) {
         element.removeClass( 'idle' );
       element.addClass( stateClass );
     }
-  }
+  };
 
   this.getStreamCmdResponse = function( respObj, respText ) {
     if ( this.streamCmdTimer )
@@ -84,14 +84,14 @@ function Monitor( monitorData ) {
       console.error( respObj.message );
       // Try to reload the image stream.
       if ( stream )
-        stream.attr('src', stream.attr( 'src').replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) )) );
+        stream.attr('src', stream.attr( 'src').replace(/rand=\d+/i, 'rand='+Math.floor((Math.random() * 1000000) )) );
     } // end if ok
     var streamCmdTimeout = statusRefreshTimeout;
     if ( this.alarmState == STATE_ALARM || this.alarmState == STATE_ALERT )
       streamCmdTimeout = streamCmdTimeout/5;
     this.streamCmdTimer = setTimeout( this.streamCmdQuery, this );
     this.lastAlarmState = this.alarmState;
-  } // this.getStreamCmdResponse
+  }; // this.getStreamCmdResponse
 
   this.streamCmdQuery = function( resent ) {
     //if ( resent )
@@ -100,8 +100,8 @@ function Monitor( monitorData ) {
     //this.streamCmdReq.send( this.streamCmdParms+"&command="+CMD_QUERY );
     if ( this.streamCmdReq )
       this.streamCmdReq.abort();
-    this.streamCmdReq = $j.getJSON( this.server_url,  this.streamCmdParms+"&command="+CMD_QUERY, this.getStreamCmdResponse );
-  }
+    this.streamCmdReq = $j.getJSON( this.server_url, this.streamCmdParms+"&command="+CMD_QUERY, this.getStreamCmdResponse );
+  };
 
   //this.streamCmdReq = new Request.JSON( { url: this.server_url, method: 'get', timeout: AJAX_TIMEOUT, onSuccess: this.getStreamCmdResponse.bind( this ), onTimeout: this.streamCmdQuery.bind( this, true ), link: 'cancel' } );
 
@@ -128,10 +128,10 @@ function selectLayout( element ) {
     var streamImg = $j('#liveStream'+monitor.id );
     if ( streamImg ) {
       var src = streamImg.attr('src');
-      src = src.replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) ));
-      src = src.replace(/scale=[\.\d]+/i,'' );
-      src = src.replace(/width=[\.\d]+/i,'' );
-      src = src.replace(/height=[\.\d]+/i,'' );
+      src = src.replace(/rand=\d+/i, 'rand='+Math.floor((Math.random() * 1000000) ));
+      src = src.replace(/scale=[\.\d]+/i, '' );
+      src = src.replace(/width=[\.\d]+/i, '' );
+      src = src.replace(/height=[\.\d]+/i, '' );
       streamImg.attr('src', src);
       streamImg.css('width', '100%' );
       streamImg.css('height', '');
@@ -152,7 +152,7 @@ function changeWidth() {
     var streamImg = $j('#liveStream'+monitor.id );
     if ( streamImg ) {
       var src = streamImg.attr('src');
-      src = src.replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) ));
+      src = src.replace(/rand=\d+/i, 'rand='+Math.floor((Math.random() * 1000000) ));
       streamImg.attr('src', src);
       streamImg.css('width', width + 'px' );
       streamImg.css('height', '');
@@ -173,7 +173,7 @@ function changeHeight() {
     /*Stream could be an applet so can't use moo tools*/
     var streamImg = $j('#liveStream'+monitor.id );
     if ( streamImg ) {
-      streamImg.attr('src', streamImg.attr('src').replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) )) );
+      streamImg.attr('src', streamImg.attr('src').replace(/rand=\d+/i, 'rand='+Math.floor((Math.random() * 1000000) )) );
       streamImg.css('height', height + 'px' );
     }
   }
@@ -190,18 +190,18 @@ function changeScale() {
     var newWidth = ( monitorData[x].width * scale ) / SCALE_BASE;
     var newHeight = ( monitorData[x].height * scale ) / SCALE_BASE;
     /*Stream could be an applet so can't use moo tools*/
-    var streamImg = $j('#liveStream'+monitor.id );
+    var streamImg = $j( '#liveStream'+monitor.id );
     if ( streamImg ) {
-      var src = streamImg.attr('src');
+      var src = streamImg.attr( 'src' );
       //streamImg.src='';
 
-      streamImg.css('width', newWidth + 'px' );
-      streamImg.css('height', newHeight + 'px' );
+      streamImg.css( 'width', newWidth + 'px' );
+      streamImg.css( 'height', newHeight + 'px' );
       //src = src.replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) ));
-      src = src.replace(/scale=[\.\d]+/i,'scale='+ scale );
-      src = src.replace(/width=[\.\d]+/i,'width='+newWidth );
-      src = src.replace(/height=[\.\d]+/i,'height='+newHeight );
-      streamImg.attr('src', src );
+      src = src.replace( /scale=[\.\d]+/i, 'scale='+ scale );
+      src = src.replace( /width=[\.\d]+/i, 'width='+newWidth );
+      src = src.replace( /height=[\.\d]+/i, 'height='+newHeight );
+      streamImg.attr( 'src', src );
     }
   }
   $j('#width').val('');
