@@ -31,7 +31,7 @@ function changeScale() {
 function changeReplayMode() {
     var replayMode = $j('#replayMode').get('value');
 
-    Cookie.write( 'replayMode', replayMode, { duration: 10*365 })
+    Cookie.write( 'replayMode', replayMode, { duration: 10*365 });
 
     refreshWindow();
 }
@@ -187,9 +187,9 @@ function streamSeek( offset ) {
     streamReq( "command="+CMD_SEEK+"&offset="+offset );
 }
 
-function streamQuery() {       
+function streamQuery() {
     streamReq( "command="+CMD_QUERY );
-}       
+}
 
 var slider = null;
 var scroll = null;
@@ -201,7 +201,7 @@ function getEventResponse( respObj, respText )
 
     eventData = respObj.event;
     var eventStills = $j('#eventStills');
-  
+
     if ( eventStills && !$j('#eventStills').hasClass( 'hidden' ) && currEventId != eventData.Id )
         resetEventStills();
     currEventId = eventData.Id;
@@ -420,7 +420,7 @@ function getFrameResponse( respObj, respText )
         eventData['frames'] = new Object();
 
     eventData['frames'][frame.FrameId] = frame;
-    
+
     loadEventThumb( eventData, frame, respObj.loopback=="true" );
 }
 
@@ -583,12 +583,12 @@ function showVideo() {
     $j('#eventStills').addClass( 'hidden' );
     $j('#imageFeed').addClass('hidden');
     $j('#eventVideo').removeClass( 'hidden' );
-    
+
     $j('#stillsEvent').removeClass( 'hidden' );
     $j('#videoEvent').addClass( 'hidden' );
-    
+
     streamMode = 'video';
-    
+
 }
 
 function showStills()
@@ -689,7 +689,7 @@ function handleClick( event )
     var target = event.target;
     var x = event.page.x - $(target).getLeft();
     var y = event.page.y - $(target).getTop();
-    
+
     if ( event.shift )
         streamPan( x, y );
     else
@@ -697,7 +697,7 @@ function handleClick( event )
 }
 function setupListener()
 {
-// I think this stuff was to use our existing buttons instead of the videojs controls. 
+// I think this stuff was to use our existing buttons instead of the videojs controls.
 
 	// Buttons
 	var playButton = $j("#play-pause");
@@ -805,7 +805,7 @@ function initPage() {
     window.videoobj.currentTime=window.videoobj.currentTime-1;
     window.videoobj.currentTime=window.videoobj.currentTime+1;//may not be symetrical of course
 
-    vid.onstalled=function(){window.vid.currentTime=window.vid.currentTime-1;window.vid.currentTime=window.vid.currentTime+1;} 
+    vid.onstalled=function(){window.vid.currentTime=window.vid.currentTime-1;window.vid.currentTime=window.vid.currentTime+1;}
     vid.onwaiting=function(){window.vid.currentTime=window.vid.currentTime-1;window.vid.currentTime=window.vid.currentTime+1;}
     vid.onloadstart=function(){window.vid.currentTime=window.vid.currentTime-1;window.vid.currentTime=window.vid.currentTime+1;}
     vid.onplay=function(){window.vid.currentTime=window.vid.currentTime-1;window.vid.currentTime=window.vid.currentTime+1;}

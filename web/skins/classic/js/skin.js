@@ -173,7 +173,7 @@ function refreshWindow()
 
 function refreshParentWindow() {
   if ( window.opener ) {
-    if ( refreshParent == true ) 
+    if ( refreshParent == true )
       window.opener.location.reload( true );
     else if ( refreshParent )
       window.opener.location.href = refreshParent;

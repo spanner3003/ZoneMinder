@@ -50,7 +50,7 @@ function Monitor( monitorData ) {
       }
       this.setStateClass( $('monitor'+this.id), stateClass );
 
-      /*Stream could be an applet so can't use moo tools*/ 
+      /*Stream could be an applet so can't use moo tools*/
       stream.className = stateClass;
 
       var isAlarmed = ( this.alarmState == STATE_ALARM || this.alarmState == STATE_ALERT );
@@ -170,7 +170,7 @@ function changeHeight() {
 
   for ( var x = 0; x < monitors.length; x++ ) {
     var monitor = monitors[x];
-    /*Stream could be an applet so can't use moo tools*/ 
+    /*Stream could be an applet so can't use moo tools*/
     var streamImg = $j('#liveStream'+monitor.id );
     if ( streamImg ) {
       streamImg.attr('src', streamImg.attr('src').replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) )) );
@@ -189,7 +189,7 @@ function changeScale() {
     var monitor = monitors[x];
     var newWidth = ( monitorData[x].width * scale ) / SCALE_BASE;
     var newHeight = ( monitorData[x].height * scale ) / SCALE_BASE;
-    /*Stream could be an applet so can't use moo tools*/ 
+    /*Stream could be an applet so can't use moo tools*/
     var streamImg = $j('#liveStream'+monitor.id );
     if ( streamImg ) {
       var src = streamImg.attr('src');

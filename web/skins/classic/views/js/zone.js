@@ -110,7 +110,7 @@ function applyZoneType() {
         form.elements['newZone[MaxAlarmPixels]'].disabled = false;
         form.elements['newZone[OverloadFrames]'].disabled = false;
         form.elements['newZone[ExtendAlarmFrames]'].disabled = true;
-        applyCheckMethod(); 
+        applyCheckMethod();
     }
 }
 
@@ -292,7 +292,7 @@ function updateActivePoint( index ) {
     $('newZone[Points]['+index+'][y]').value = y;
     zone['Points'][index].x = x;
     zone['Points'][index].y = y;
-    var Point =  $('zonePoly').points.getItem(index);
+    var Point = $('zonePoly').points.getItem(index);
     Point.x =x;
     Point.y =y;
     updateArea();
@@ -329,7 +329,6 @@ function updateArea( ) {
   var form = $('zoneForm');
   form.elements['newZone[Area]'].value = area;
   if ( form.elements['newZone[Units]'].value == 'Percent' ) {
-
     form.elements['newZone[TempArea]'].value = Math.round( area/monitorArea*100 );
   } else if ( form.elements['newZone[Units]'].value == 'Pixels' ) {
     form.elements['newZone[TempArea]'].value = area;
@@ -346,7 +345,7 @@ function updateX( index ) {
 
     point.setStyle( 'left', x+'px' );
     zone['Points'][index].x = x;
-    var Point =  $('zonePoly').points.getItem(index);
+    var Point = $('zonePoly').points.getItem(index);
     Point.x = x;
 }
 
@@ -358,7 +357,7 @@ function updateY( index ) {
 
     point.setStyle( 'top', y+'px' );
     zone['Points'][index].y = y;
-    var Point =  $('zonePoly').points.getItem(index);
+    var Point = $('zonePoly').points.getItem(index);
     Point.y = y;
 }
 
@@ -381,9 +380,9 @@ function drawZonePoints() {
         div.addEvent( 'mouseover', highlightOn.pass( i ) );
         div.addEvent( 'mouseout', highlightOff.pass( i ) );
         div.inject( $('imageFrame') );
-        div.makeDraggable( { 
+        div.makeDraggable( {
           'container': $('imageFrame'),
-          'onStart': setActivePoint.pass( i ), 
+          'onStart': setActivePoint.pass( i ),
           'onComplete': fixActivePoint.pass( i ),
           'onDrag': updateActivePoint.pass( i )
           } );
@@ -501,18 +500,18 @@ function getStreamCmdResponse( respObj, respText ) {
                 streamCmdPlay( false );
         }
     } else {
-        checkStreamForErrors("getStreamCmdResponse",respObj);//log them
+        checkStreamForErrors("getStreamCmdResponse", respObj);//log them
         // Try to reload the image stream.
         var streamImg = document.getElementById('liveStream');
         if ( streamImg )
-            streamImg.src = streamImg.src.replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) ));
+            streamImg.src = streamImg.src.replace(/rand=\d+/i, 'rand='+Math.floor((Math.random() * 1000000) ));
     }
 
     var streamCmdTimeout = statusRefreshTimeout;
     if ( alarmState == STATE_ALARM || alarmState == STATE_ALERT )
         streamCmdTimeout = streamCmdTimeout/5;
     streamCmdTimer = streamCmdQuery.delay( streamCmdTimeout );
-} 
+}
 
 var streamPause = false;
 
@@ -546,7 +545,7 @@ function streamCmdStop( action ) {
 
 function streamCmdQuery() {
     streamCmdReq.send( streamCmdParms+"&command="+CMD_QUERY );
-}       
+}
 
 var statusCmdParms = "view=request&request=status&entity=monitor&id="+monitorId+"&element[]=Status&element[]=FrameRate";
 var statusCmdReq = new Request.JSON( { url: monitorUrl+thisUrl, method: 'post', data: statusCmdParms, timeout: AJAX_TIMEOUT, link: 'cancel', onSuccess: getStatusCmdResponse } );
@@ -563,13 +562,13 @@ function getStatusCmdResponse( respObj, respText ) {
         setAlarmState( respObj.monitor.Status );
     }
     else
-        checkStreamForErrors("getStatusCmdResponse",respObj);
+        checkStreamForErrors("getStatusCmdResponse", respObj);
 
     var statusCmdTimeout = statusRefreshTimeout;
     if ( alarmState == STATE_ALARM || alarmState == STATE_ALERT )
         statusCmdTimeout = statusCmdTimeout/5;
     statusCmdTimer = statusCmdQuery.delay( statusCmdTimeout );
-} 
+}
 
 function statusCmdQuery() {
     statusCmdReq.send();

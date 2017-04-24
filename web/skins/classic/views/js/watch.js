@@ -30,7 +30,7 @@ function changeScale() {
 
   Cookie.write( 'zmWatchScale'+monitorId, scale, { duration: 10*365 } );
 
-  /*Stream could be an applet so can't use moo tools*/ 
+  /*Stream could be an applet so can't use moo tools*/
   var streamImg = document.getElementById('liveStream'+monitorId);
   if ( streamImg ) {
     streamImg.style.width = newWidth + "px";
@@ -204,7 +204,7 @@ function getStreamCmdResponse( respObj, respText ) {
   if ( alarmState == STATE_ALARM || alarmState == STATE_ALERT )
     streamCmdTimeout = streamCmdTimeout/5;
   streamCmdTimer = streamCmdQuery.delay( streamCmdTimeout );
-} 
+}
 
 function streamCmdPause( action ) {
   setButtonState( $('pauseBtn'), 'active' );
@@ -322,7 +322,7 @@ function streamCmdPan( x, y ) {
 
 function streamCmdQuery() {
   streamCmdReq.send( streamCmdParms+"&command="+CMD_QUERY );
-}       
+}
 
 var statusCmdParms = "view=request&request=status&entity=monitor&id="+monitorId+"&element[]=Status&element[]=FrameRate";
 var statusCmdReq = new Request.JSON( { url: monitorUrl+thisUrl, method: 'post', data: statusCmdParms, timeout: AJAX_TIMEOUT, link: 'cancel', onSuccess: getStatusCmdResponse } );
@@ -343,11 +343,11 @@ function getStatusCmdResponse( respObj, respText ) {
   if ( alarmState == STATE_ALARM || alarmState == STATE_ALERT )
     statusCmdTimeout = statusCmdTimeout/5;
   statusCmdTimer = statusCmdQuery.delay( statusCmdTimeout );
-} 
+}
 
 function statusCmdQuery() {
   statusCmdReq.send();
-}       
+}
 
 var alarmCmdParms = "view=request&request=alarm&id="+monitorId;
 var alarmCmdReq = new Request.JSON( { url: monitorUrl+thisUrl, method: 'post', timeout: AJAX_TIMEOUT, link: 'cancel', onSuccess: getAlarmCmdResponse, onTimeout: streamCmdQuery } );
@@ -549,7 +549,7 @@ function controlCmdImage( x, y ) {
   controlReq.send( imageControlParms+"&x="+x+"&y="+y );
   if ( streamMode == "single" )
     fetchImage.pass( $('imageFeed').getElement('img') ).delay( 1000 );
-}       
+}
 
 function fetchImage( streamImage ) {
   streamImage.src = streamImage.src.replace(/rand=\d+/i,'rand='+Math.floor((Math.random() * 1000000) ));

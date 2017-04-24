@@ -84,7 +84,7 @@ function requestFrameData( eventId, frameId ) {
 }
 
 function previewEvent( eventId, frameId ) {
-    
+
   if ( events[eventId] ) {
     var event = events[eventId];
     if ( event['frames'] ) {

@@ -63,7 +63,4 @@ $j(document).ready(function() {
 
 
 	}
-
-
-
 });
