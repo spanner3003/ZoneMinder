@@ -14,7 +14,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */  
 
 #include "zm.h"
@@ -182,9 +182,9 @@ int LibvlcCamera::PrimeCapture()
 
   mLibvlcData.bufferSize = width * height * mBpp;
   // Libvlc wants 32 byte alignment for images (should in theory do this for all image lines)
-  mLibvlcData.buffer = (uint8_t*)zm_mallocaligned(32, mLibvlcData.bufferSize);
-  mLibvlcData.prevBuffer = (uint8_t*)zm_mallocaligned(32, mLibvlcData.bufferSize);
-
+  mLibvlcData.buffer = (uint8_t*)zm_mallocaligned(64, mLibvlcData.bufferSize);
+  mLibvlcData.prevBuffer = (uint8_t*)zm_mallocaligned(64, mLibvlcData.bufferSize);
+  
   mLibvlcData.newImage.setValueImmediate(false);
 
   libvlc_media_player_play(mLibvlcMediaPlayer);
@@ -212,7 +212,7 @@ int LibvlcCamera::Capture( Image &image )
 }
 
 // Should not return -1 as cancels capture. Always wait for image if available.
-int LibvlcCamera::CaptureAndRecord(Image &image, bool recording, char* event_directory)
+int LibvlcCamera::CaptureAndRecord(Image &image, timeval recording, char* event_directory)
 {
   while(!mLibvlcData.newImage.getValueImmediate())
     mLibvlcData.newImage.getUpdatedValue(1);

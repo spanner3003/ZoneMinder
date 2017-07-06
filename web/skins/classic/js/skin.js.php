@@ -15,7 +15,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
 //
@@ -35,8 +35,32 @@ var canViewSystem = <?php echo canView('System' )?'true':'false' ?>;
 
 var canEditGroups = <?php echo canEdit('Groups' )?'true':'false' ?>;
 
-var refreshParent = <?php echo !empty($refreshParent)?'true':'false' ?>;
+var refreshParent = <?php
+if ( ! empty($refreshParent) ) {
+  if ( $refreshParent == true ) {
+    echo 'true';
+  } else if ( $refreshParent ) {
+    # This is to tell the parent to refresh to a specific URL
+    echo "'$refreshParent'";
+  } else {
+    echo 'false';
+  }
+} else {
+  echo 'false';
+}
+?>;
+var closePopup = <?php
+if ( ( ! empty($closePopup) ) and ( $closePopup == true ) ) {
+    echo 'true';
+} else {
+  echo 'false';
+}
+?>;
 
 var focusWindow = <?php echo !empty($focusWindow)?'true':'false' ?>;
 
 var imagePrefix = "<?php echo viewImagePath( "", '&' ) ?>";
+
+<?php if ( ZM_OPT_USE_AUTH && ZM_AUTH_HASH_LOGINS ) { ?>
+var auth_hash = '<?php echo isset($_SESSION['AuthHash']) ? $_SESSION['AuthHash'] : ''; ?>';
+<?php } ?>

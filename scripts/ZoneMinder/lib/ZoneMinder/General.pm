@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # ==========================================================================
 #
@@ -104,8 +104,10 @@ sub getCmdFormat {
   my $suffix = "";
   my $command = $prefix.$null_command.$suffix;
   Debug( "Testing \"$command\"\n" );
-  my $output = qx($command);
+  my $output = qx($command 2>&1);
   my $status = $? >> 8;
+  $output //= $!;
+  
   if ( !$status ) {
     Debug( "Test ok, using format \"$prefix<command>$suffix\"\n" );
     return( $prefix, $suffix );
@@ -117,8 +119,10 @@ sub getCmdFormat {
     $suffix = "'";
     $command = $prefix.$null_command.$suffix;
     Debug( "Testing \"$command\"\n" );
-    my $output = qx($command);
+    my $output = qx($command 2>&1);
     my $status = $? >> 8;
+    $output //= $!;
+    
     if ( !$status ) {
       Debug( "Test ok, using format \"$prefix<command>$suffix\"\n" );
       return( $prefix, $suffix );
@@ -130,8 +134,10 @@ sub getCmdFormat {
       $suffix = "'";
       $command = $prefix.$null_command.$suffix;
       Debug( "Testing \"$command\"\n" );
-      $output = qx($command);
+      $output = qx($command 2>&1);
       $status = $? >> 8;
+      $output //= $!;
+      
       if ( !$status ) {
         Debug( "Test ok, using format \"$prefix<command>$suffix\"\n" );
         return( $prefix, $suffix );
@@ -179,7 +185,7 @@ sub runCommand {
 sub getEventPath {
   my $event = shift;
 
-  my $Storage = new ZoneMinder::Storage( $$event{Id} );
+  my $Storage = new ZoneMinder::Storage( $$event{StorageId} );
   my $event_path = join( '/', 
       $Storage->Path(),
       $event->{MonitorId},

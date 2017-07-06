@@ -15,7 +15,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // 
 
 error_reporting( E_ALL );
@@ -28,7 +28,7 @@ if ( $debug ) {
 }
 
 // Use new style autoglobals where possible
-if ( version_compare( phpversion(), "4.1.0", "<") ) {
+if ( version_compare( phpversion(), '4.1.0', '<') ) {
   $_SESSION = &$HTTP_SESSION_VARS;
   $_SERVER = &$HTTP_SERVER_VARS;
 }
@@ -37,7 +37,7 @@ if ( version_compare( phpversion(), "4.1.0", "<") ) {
 if ( false ) {
   ob_start();
   phpinfo( INFO_VARIABLES );
-  $fp = fopen( "/tmp/env.html", "w" );
+  $fp = fopen( '/tmp/env.html', 'w' );
   fwrite( $fp, ob_get_contents() );
   fclose( $fp );
   ob_end_clean();
@@ -104,12 +104,22 @@ if ( ! in_array( $css, $css_skins ) ) {
 
 define( 'ZM_BASE_PATH', dirname( $_SERVER['REQUEST_URI'] ) );
 define( 'ZM_SKIN_PATH', "skins/$skin" );
+define( 'ZM_SKIN_NAME', $skin );
 
 $skinBase = array(); // To allow for inheritance of skins
 if ( !file_exists( ZM_SKIN_PATH ) )
   Fatal( "Invalid skin '$skin'" );
-require_once( ZM_SKIN_PATH.'/includes/init.php' );
 $skinBase[] = $skin;
+
+$currentCookieParams = session_get_cookie_params(); 
+Logger::Debug('Setting cookie parameters to lifetime('.$currentCookieParams['lifetime'].') path('.$currentCookieParams['path'].') domain ('.$currentCookieParams['domain'].') secure('.$currentCookieParams['secure'].') httpOnly(1)');
+session_set_cookie_params( 
+    $currentCookieParams['lifetime'], 
+    $currentCookieParams['path'], 
+    $currentCookieParams['domain'],
+    $currentCookieParams['secure'], 
+    true
+); 
 
 ini_set( 'session.name', 'ZMSESSID' );
 
@@ -140,16 +150,6 @@ require_once( 'includes/functions.php' );
 
 # Running is global but only do the daemonCheck if it is actually needed
 $running = null;
-#= daemonCheck();
-#$states = dbFetchAll( 'SELECT * FROM States' );
-#foreach ( $states as $state ) {
-  #if ( $state['IsActive'] == 1 ) {
-    #$run_state = $state['Name'];
-    #break;
-  #}
-#}
-#$status = $running?translate('Running'):translate('Stopped');
-#$run_state = dbFetchOne('SELECT Name FROM States WHERE IsActive = 1', 'Name' );
 
 # Add Cross domain access headers
 CORSHeaders();
@@ -159,9 +159,13 @@ if ( !is_writable(ZM_DIR_EVENTS) || !is_writable(ZM_DIR_IMAGES) ) {
   Error( "Cannot write to content dirs('".ZM_DIR_EVENTS."','".ZM_DIR_IMAGES."').  Check that these exist and are owned by the web account user");
 }
 
+# Globals
+$redirect = null;
+$view = null;
 if ( isset($_REQUEST['view']) )
   $view = detaintPath($_REQUEST['view']);
 
+$request = null;
 if ( isset($_REQUEST['request']) )
   $request = detaintPath($_REQUEST['request']);
 
@@ -170,7 +174,9 @@ foreach ( getSkinIncludes( 'skin.php' ) as $includeFile )
 
 if ( ZM_OPT_USE_AUTH && ZM_AUTH_HASH_LOGINS ) {
   if ( empty($user) && ! empty($_REQUEST['auth']) ) {
+Logger::Debug("Getting user from auth hash");
     if ( $authUser = getAuthUser( $_REQUEST['auth'] ) ) {
+Logger::Debug("Success Getting user from auth hash");
       userLogin( $authUser['Username'], $authUser['Password'], true );
     }
   } else if ( ! empty($user) ) {
@@ -178,19 +184,40 @@ if ( ZM_OPT_USE_AUTH && ZM_AUTH_HASH_LOGINS ) {
     generateAuthHash( ZM_AUTH_HASH_IPS );
   }
 }
-# If I put this here, it protects all views and popups, but it has to go after actions.php because actions.php does the actual logging in.
-if ( ZM_OPT_USE_AUTH && ! isset($user) && $view != 'login' ) {
-  $view = 'login';
-}
 
 if ( isset($_REQUEST['action']) ) {
   $action = detaintPath($_REQUEST['action']);
-  require_once( 'includes/actions.php' );
+}
+
+# The only variable we really need to set is action. The others are informal.
+isset($view) || $view = NULL;
+isset($request) || $request = NULL;
+isset($action) || $action = NULL;
+
+if ( ZM_ENABLE_CSRF_MAGIC && $action != 'login' && $view != 'view_video' ) {
+  require_once( 'includes/csrf/csrf-magic.php' );
+  Logger::Debug("Calling csrf_check with the following values: \$request = \"$request\", \$view = \"$view\", \$action = \"$action\"");
+  csrf_check();
+}
+
+# Need to include actions because it does auth
+require_once( 'includes/actions.php' );
+
+# If I put this here, it protects all views and popups, but it has to go after actions.php because actions.php does the actual logging in.
+if ( ZM_OPT_USE_AUTH && ! isset($user) ) {
+  Logger::Debug("Redirecting to login" );
+  $view = 'login';
+  $request = null;
 }
 
 # Only one request can open the session file at a time, so let's close the session here to improve concurrency.
 # Any file/page that sets session variables must re-open it.
 session_write_close();
+
+if ( $redirect ) {
+  header('Location: '.ZM_BASE_URL.$_SERVER['PHP_SELF'].'?view='.$view);
+  return;
+}
 
 if ( isset( $_REQUEST['request'] ) ) {
   foreach ( getSkinIncludes( 'ajax/'.$request.'.php', true, true ) as $includeFile ) {

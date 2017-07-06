@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 # ==========================================================================
 #
@@ -32,10 +32,9 @@ require ZoneMinder::Base;
 require Date::Manip;
 
 use parent qw(ZoneMinder::Object);
-#our @ISA = qw(ZoneMinder::Object);
 
 use vars qw/ $table $primary_key /;
-$table = 'Events';
+$table = 'Filters';
 $primary_key = 'Id';
 # ==========================================================================
 #
@@ -100,7 +99,7 @@ sub Execute {
   my $sql = $self->Sql();
 
   if ( $self->{HasDiskPercent} ) {
-    my $disk_percent = getDiskPercent( $$self{Storage} ? $$self{Storage}->Path() : () );
+		my $disk_percent = getDiskPercent( $$self{Storage} ? $$self{Storage}->Path() : () );
     $sql =~ s/zmDiskPercent/$disk_percent/g;
   }
   if ( $self->{HasDiskBlocks} ) {
@@ -196,9 +195,9 @@ sub Sql {
                 # This gets used later, I forget for what
                 $$self{Server} = new ZoneMinder::Server( $temp_value );
               }
-            } elsif ( $term->{attr} eq 'StorageId' ) {
-              $value = "'$temp_value'";
-              $$self{Storage} = new ZoneMinder::Storage( $temp_value );
+						} elsif ( $term->{attr} eq 'StorageId' ) {
+							$value = "'$temp_value'";
+							$$self{Storage} = new ZoneMinder::Storage( $temp_value );
             } elsif ( $term->{attr} eq 'Name'
                 || $term->{attr} eq 'Cause'
                 || $term->{attr} eq 'Notes'
@@ -269,9 +268,9 @@ sub Sql {
     }
     # Don't do this, it prevents re-generation and concatenation.
     # If the file already exists, then the video won't be re-recreated
-    #if ( $self->{AutoVideo} ) {
-      #push @auto_terms, "E.Videoed = 0";
-    #}
+    if ( $self->{AutoVideo} ) {
+      push @auto_terms, "E.Videoed = 0";
+    }
     if ( $self->{AutoUpload} ) {
       push @auto_terms, "E.Uploaded = 0";
     }

@@ -14,7 +14,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // 
 
 #include "zm.h"
@@ -63,13 +63,13 @@ RETSIGTYPE zm_die_handler(int signal)
 		ucontext_t *uc = (ucontext_t *) context;
 		cr2 = info->si_addr;
     #if defined(__x86_64__)
-	    #ifdef __FreeBSD_kernel__
+	    #if defined(__FreeBSD_kernel__) || defined(__FreeBSD__) 
 		ip = (void *)(uc->uc_mcontext.mc_rip);
 	    #else
 		ip = (void *)(uc->uc_mcontext.gregs[REG_RIP]);
 	    #endif
     #else
-	    #ifdef __FreeBSD_kernel__
+	    #if defined(__FreeBSD_kernel__) || defined(__FreeBSD__)
 		ip = (void *)(uc->uc_mcontext.mc_eip);
 	    #else
 		ip = (void *)(uc->uc_mcontext.gregs[REG_EIP]);

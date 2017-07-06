@@ -1,120 +1,100 @@
-function updateButtons( element )
-{
-    var form = element.form;
+function updateButtons( element ) {
+  var form = element.form;
 
-    if ( element.type == 'checkbox' && element.checked )
-        form.elements['executeButton'].disabled = false;
-    else
-    {
-        var canExecute = false;
-        if ( form.elements['AutoArchive'].checked )
-            canExecute = true;
-        else if ( typeof ZM_OPT_FFMPEG !== "undefined" && form.elements['AutoVideo'].checked )
-            canExecute = true;
-        else if ( typeof ZM_OPT_UPLOAD !== "undefined" && form.elements['AutoUpload'].checked )
-            canExecute = true;
-        else if ( typeof ZM_OPT_EMAIL !== "undefined" && form.elements['AutoEmail'].checked )
-            canExecute = true;
-        else if ( typeof ZM_OPT_MESSAGE !== "undefined" && form.elements['AutoMessage'].checked )
-            canExecute = true;
-        else if ( form.elements['AutoExecute'].checked && form.elements['AutoExecuteCmd'].value != '' )
-            canExecute = true;
-        else if ( form.elements['AutoDelete'].checked )
-            canExecute = true;
-        form.elements['executeButton'].disabled = !canExecute;
-    }
+  if ( element.type == 'checkbox' && element.checked ) {
+    form.elements['executeButton'].disabled = false;
+  } else {
+    var canExecute = false;
+    if ( form.elements['filter[AutoArchive]'] && form.elements['filter[AutoArchive]'].checked )
+      canExecute = true;
+    else if ( form.elements['filter[AutoVideo]'] && form.elements['filter[AutoVideo]'].checked )
+      canExecute = true;
+    else if ( form.elements['filter[AutoUpload]'] && form.elements['filter[AutoUpload]'].checked )
+      canExecute = true;
+    else if ( form.elements['filter[AutoEmail]'] && form.elements['filter[AutoEmail]'].checked )
+      canExecute = true;
+    else if ( form.elements['filter[AutoMessage]'] && form.elements['filter[AutoMessage]'].checked )
+      canExecute = true;
+    else if ( form.elements['filter[AutoExecute]'].checked && form.elements['filter[AutoExecuteCmd]'].value != '' )
+      canExecute = true;
+    else if ( form.elements['filter[AutoDelete]'].checked )
+      canExecute = true;
+    form.elements['executeButton'].disabled = !canExecute;
+  }
 }
 
-function clearValue( element, line )
-{
-    var form = element.form;
-    var val = form.elements['filter[terms]['+line+'][val]'];
-    val.value = '';
+function clearValue( element, line ) {
+  var form = element.form;
+  var val = form.elements['filter[Query][terms]['+line+'][val]'];
+  val.value = '';
 }
 
-function submitToFilter( element, reload )
-{
-    var form = element.form;
-    form.target = window.name;
-    form.view.value = 'filter';
-    form.reload.value = reload;
+function submitToFilter( element ) {
+  var form = element.form;
+  form.target = window.name;
+  form.action = thisUrl + '?view=filter';
+  form.elements['action'].value = 'submit';
+  form.submit();
+}
+
+function submitToEvents( element ) {
+  var form = element.form;
+  if ( validateForm( form ) ) {
+    form.target = 'zmEvents';
+    form.action = thisUrl + '?view=events';
     form.submit();
+  }
 }
 
-function submitToEvents( element )
-{
-    var form = element.form;
-    if ( validateForm( form ) )
-    {
-        form.target = 'zmEvents';
-        form.view.value = 'events';
-        form.action.value = '';
-        form.execute.value = 0;
-        form.submit();
-    }
-}
-
-function executeFilter( element )
-{
-    var form = element.form;
-    if ( validateForm( form ) )
-    {
-        form.target = 'zmEvents';
-        form.view.value = 'events';
-        form.action.value = 'filter';
-        form.execute.value = 1;
-        form.submit();
-    }
-}
-
-function saveFilter( element )
-{
-    var form = element.form;
-
-    var popupName = 'zmEventsFilterSave';
-    createPopup( thisUrl, popupName, 'filtersave' );
-
-    form.target = popupName;
-    form.view.value = 'filtersave';
+function executeFilter( element ) {
+  var form = element.form;
+  if ( validateForm( form ) ) {
+    form.target = 'zmEvents';
+    form.action = thisUrl + '?view=events';
+    form.elements['action'].value = 'execute';
     form.submit();
+  }
 }
 
-function deleteFilter( element, id, name )
-{
-    if ( confirm( deleteSavedFilterString+" '"+name+"'" ) )
-    {
-        var form = element.form;
-        form.action.value = 'delete';
-        form.fid.value = id;
-        submitToFilter( element, 1 );
-    }
+function saveFilter( element ) {
+  var form = element.form;
+
+  //form.target = 'zmFilter';
+  form.elements['action'].value = 'save';
+  form.action = thisUrl + '?view=filter';
+  form.submit();
 }
 
-function addTerm( element, line )
-{
+function deleteFilter( element, name ) {
+  if ( confirm( deleteSavedFilterString+" '"+name+"'?" ) ) {
     var form = element.form;
-    form.target = window.name;
-    form.view.value = currentView;
-    form.action.value = 'filter';
-    form.subaction.value = 'addterm';
-    form.line.value = line;
+    form.elements['action'].value = 'delete';
     form.submit();
+  }
 }
 
-function delTerm( element, line )
-{
-    var form = element.form;
-    form.target = window.name;
-    form.view.value = currentView;
-    form.action.value = 'filter';
-    form.subaction.value = 'delterm';
-    form.line.value = line;
-    form.submit();
+function addTerm( element, line ) {
+  var form = element.form;
+  form.target = window.name;
+  form.action = thisUrl + '?view='+currentView;
+  form.elements['object'].value = 'filter';
+  form.elements['action'].value = 'addterm';
+  form.elements['line'].value = line;
+  form.submit();
 }
 
-function init()
-{
-    updateButtons( $('executeButton') );
+function delTerm( element, line ) {
+  var form = element.form;
+  form.target = window.name;
+  form.action = thisUrl + '?view='+currentView;
+  form.elements['object'].value = 'filter';
+  form.elements['action'].value = 'delterm';
+  form.elements['line'].value = line;
+  form.submit();
+}
+
+function init() {
+  updateButtons( $('executeButton') );
 }
 
 window.addEvent( 'domready', init );

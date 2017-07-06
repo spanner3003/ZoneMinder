@@ -14,7 +14,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // 
 
 #ifndef ZM_FFMPEG_CAMERA_H
@@ -32,8 +32,7 @@
 // Class representing 'ffmpeg' cameras, i.e. those which are
 // accessed using ffmpeg multimedia framework
 //
-class FfmpegCamera : public Camera
-{
+class FfmpegCamera : public Camera {
   protected:
     std::string         mPath;
     std::string         mMethod;
@@ -53,11 +52,11 @@ class FfmpegCamera : public Camera
     AVFrame             *mFrame;
     _AVPIXELFORMAT      imagePixFormat;
 
-  // Need to keep track of these because apparently the stream can start with values for pts/dts and then subsequent packets start at zero.
-  int64_t audio_last_pts;
-  int64_t audio_last_dts;
-  int64_t video_last_pts;
-  int64_t video_last_dts;
+    // Need to keep track of these because apparently the stream can start with values for pts/dts and then subsequent packets start at zero.
+    int64_t audio_last_pts;
+    int64_t audio_last_dts;
+    int64_t video_last_pts;
+    int64_t video_last_dts;
 
     // Used to store the incoming packet, it will get copied when queued. 
     // We only ever need one at a time, so instead of constantly allocating
@@ -75,7 +74,6 @@ class FfmpegCamera : public Camera
     pthread_t mReopenThread;
 #endif // HAVE_LIBAVFORMAT
 
-    bool                wasRecording;
     VideoStore          *videoStore;
     char                oldDirectory[4096];
     unsigned int        old_event_id;
@@ -101,7 +99,7 @@ class FfmpegCamera : public Camera
     int PrimeCapture();
     int PreCapture();
     int Capture( Image &image );
-    int CaptureAndRecord( Image &image, bool recording, char* event_directory );
+    int CaptureAndRecord( Image &image, timeval recording, char* event_directory );
     int PostCapture();
 };
 

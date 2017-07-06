@@ -14,14 +14,19 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */ 
 
 /*
  * Primary look and feel styles
  */
 
+html {
+  height: 100%;
+}
+
 body {
+  height: 100%;
     font-family: "Open Sans", Verdana, Arial, Helvetica, sans-serif;
     font-size: 13px;
     color: #333333;
@@ -60,10 +65,12 @@ p {
 }
 
 th {
+/*
     padding: 3px;
     text-transform: uppercase;
     font-size: 0.8em;
     font-weight: 600;
+*/
 }
 
 a:link {
@@ -95,7 +102,7 @@ input,textarea,select,button {
     color: #333333;
 }
 
-input[type=text], input[type=password], textarea, select {
+input[type=text], input[type=password], input[type="url"], textarea, select {
     padding: 1px;
 }
 
@@ -107,6 +114,9 @@ input[disabled] {
     color: #888888;
 }
 
+img {
+  display: inline-block;
+}
 img.normal {
     border: white solid 1px;
 }
@@ -333,14 +343,14 @@ th.table-th-sort span.table-th-sort-span {
     float: right;
     width: 12px;
     height: 12px;
-    background: url("../graphics/arrow-s-u.gif") no-repeat 0 0;
+    background: url("/skins/classic/graphics/arrow-s-u.png") no-repeat 0 0;
 }
 
 th.table-th-sort-rev span.table-th-sort-span {
     float: right;
     width: 12px;
     height: 12px;
-    background: url("../graphics/arrow-s-d.gif") no-repeat 0 0;
+    background: url("/skins/classic/graphics/arrow-s-d.png") no-repeat 0 0;
 }
 
 .table-tr-odd {
@@ -356,6 +366,7 @@ th.table-th-sort-rev span.table-th-sort-span {
 }
 
 #header {
+    width: 100%;
     line-height: 24px;
     text-align: left;
     background-color: #383836;
@@ -474,21 +485,17 @@ input[type=submit]:disabled {
 
 }
 
-/*
- * Console table for the main event table
- */
-
-#consoleTable td, #consoleTable th {
-    padding: 5px;    
-    border-bottom: 2px solid #f2f2f2;
+#options {
+  font-size:90%;
 }
 
-#consoleTable input[type=button] {
-    margin-right: 3px !important;
+#options .help-block {
+  margin-top: 0;
 }
 
-#consoleTable tfoot {
-    background-color: #f2f2f2;  
+#options .form-group {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e7e7e7;
 }
 
 .navbar{
@@ -501,14 +508,18 @@ input[type=submit]:disabled {
 	font-weight: bold;
 	font-size: 20px;
 }
+
+.container-fluid {
+  position: relative;
+}
+
 .sidebar {
-    position: fixed;
-    top: 81px;
-    bottom: 0;
+    position: absolute;
+    top: 0;
     left: 0;
     z-index: 1000;
     display: block;
-    padding: 20px;
+    padding: 0;
     overflow-x: hidden;
     overflow-y: auto;
     background-color: #f5f5f5;
@@ -516,11 +527,11 @@ input[type=submit]:disabled {
 }
 
 .sidebar ul {
-margin-right: -21px;
+margin-right: 0;
 margin-bottom: 20px;
-margin-left: -20px;
+margin-left: 0;
 }
 
-
-
-
+.nav-pills > li > a {
+  border-radius: 0;
+}

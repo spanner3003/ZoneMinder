@@ -15,7 +15,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
 require_once('includes/Monitor.php');
@@ -34,6 +34,7 @@ if ( ! visibleMonitor( $mid ) ) {
 
 $monitor = new Monitor( $mid );
 
+#Whether to show the controls button
 $showPtzControls = ( ZM_OPT_CONTROL && $monitor->Controllable() && canView( 'Control' ) );
 
 if ( isset( $_REQUEST['scale'] ) ) {
@@ -70,7 +71,7 @@ if ( canView( 'Control' ) && $monitor->Type() == 'Local' ) {
           <div id="scaleControl"><?php echo translate('Scale') ?>: <?php echo buildSelect( "scale", $scales, "changeScale( this );" ); ?></div>
         </div>
       </div>
-      <div id="imageFeed"><?php echo getStreamHTML( $monitor, $scale ); ?></div>
+      <div id="imageFeed"><?php echo getStreamHTML( $monitor, array('scale'=>$scale) ); ?></div>
       <div id="monitorStatus">
 <?php if ( canEdit( 'Monitors' ) ) { ?>
         <div id="enableDisableAlarms"><a id="enableAlarmsLink" href="#" onclick="cmdEnableAlarms(); return( false );" class="hidden"><?php echo translate('EnableAlarms') ?></a><a id="disableAlarmsLink" href="#" onclick="cmdDisableAlarms(); return( false );" class="hidden"><?php echo translate('DisableAlarms') ?></a></div>

@@ -15,7 +15,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
 if ( !canView( 'System' ) )
@@ -32,7 +32,6 @@ $tabs['system'] = translate('System');
 $tabs['config'] = translate('Config');
 $tabs['servers'] = translate('Servers');
 $tabs['storage'] = translate('Storage');
-$tabs['paths'] = translate('Paths');
 $tabs['web'] = translate('Web');
 $tabs['images'] = translate('Images');
 $tabs['logging'] = translate('Logging');
@@ -240,7 +239,7 @@ elseif ( $tab == "users" )
         <input type="hidden" name="tab" value="<?php echo $tab ?>"/>
         <input type="hidden" name="action" value="delete"/>
         <input type="hidden" name="object" value="storage"/>
-        <table id="contentTable" class="major storageTable" cellspacing="0">
+        <table id="contentTable" class="table table-striped" cellspacing="0">
           <thead>
             <tr>
               <th class="colId"><?php echo translate('Id') ?></th>

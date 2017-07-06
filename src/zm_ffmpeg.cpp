@@ -14,8 +14,8 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */ 
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/ 
 
 #include "zm_ffmpeg.h"
 #include "zm_image.h"
@@ -158,18 +158,10 @@ SWScale::SWScale() : gotdefaults(false), swscale_ctx(NULL), input_avframe(NULL),
 SWScale::~SWScale() {
 
   /* Free up everything */
-#if LIBAVCODEC_VERSION_CHECK(55, 28, 1, 45, 101)
   av_frame_free( &input_avframe );
-#else
-  av_freep( &input_avframe );
-#endif   
   //input_avframe = NULL;
 
-#if LIBAVCODEC_VERSION_CHECK(55, 28, 1, 45, 101)
   av_frame_free( &output_avframe );
-#else
-  av_freep( &output_avframe );
-#endif
   //output_avframe = NULL;
 
   if(swscale_ctx) {
@@ -419,6 +411,27 @@ static void zm_log_fps(double d, const char *postfix) {
     Debug(1, "%1.0f %s", d, postfix);
   } else
     Debug(1, "%1.0fk %s", d / 1000, postfix);
+}
+
+#if LIBAVCODEC_VERSION_CHECK(57, 64, 0, 64, 0)
+void zm_dump_codecpar ( const AVCodecParameters *par ) {
+  Debug(1, "Dumping codecpar codec_type(%d) codec_id(%d) codec_tag(%d) width(%d) height(%d)", 
+    par->codec_type,
+    par->codec_id,
+    par->codec_tag,
+    par->width,
+    par->height
+); 
+}
+#endif
+
+void zm_dump_codec ( const AVCodecContext *codec ) {
+  Debug(1, "Dumping codecpar codec_type(%d) codec_id(%d) width(%d) height(%d)", 
+    codec->codec_type,
+    codec->codec_id,
+    codec->width,
+    codec->height
+); 
 }
 
 /* "user interface" functions */

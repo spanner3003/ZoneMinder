@@ -2,7 +2,7 @@
 # Created by mastertheknife (Kfir Itzhak)
 # For more information and installation, see the INSTALL file
 #
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.7)
 project (zoneminder)
 file (STRINGS "version" zoneminder_VERSION)
 # make API version a minor of ZM version
@@ -66,6 +66,24 @@ set(CMAKE_CXX_FLAGS_DEBUG "-Wall -D__STDC_CONSTANT_MACROS -g")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# GCC below 6.0 doesn't support __target__("fpu=neon") attribute, required for compiling ARM Neon code, otherwise compilation fails.
+# Must use -mfpu=neon compiler flag instead, but only do that for processors that support neon, otherwise strip the neon code alltogether,
+# because passing -fmpu=neon is unsafe to processors that don't support neon
+IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
+	IF(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
+		EXEC_PROGRAM(grep ARGS " neon " "/proc/cpuinfo" OUTPUT_VARIABLE neonoutput RETURN_VALUE neonresult)
+		IF(neonresult EQUAL 0)
+			set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -mfpu=neon")
+			set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpu=neon")
+			set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -mfpu=neon")
+			set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -mfpu=neon")
+		ELSE(neonresult EQUAL 0)
+			add_definitions(-DZM_STRIP_NEON=1)
+			message(STATUS "ARM Neon is not available on this processor. Neon functions will be absent")
+		ENDIF(neonresult EQUAL 0)
+	ENDIF(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
+ENDIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" AND CMAKE_SYSTEM_NAME MATCHES "Linux")
+
 # Modules that we need:
 include (GNUInstallDirs)
 include (CheckIncludeFile)
@@ -85,7 +103,11 @@ mark_as_advanced(
     ZM_PERL_MM_PARMS 
     ZM_PERL_SEARCH_PATH 
     ZM_TARGET_DISTRO 
-    ZM_CONFIG_DIR)
+    ZM_PATH_MAP
+    ZM_PATH_ARP 
+    ZM_CONFIG_DIR
+    ZM_CONFIG_SUBDIR
+    ZM_SYSTEMD)
 
 set(ZM_RUNDIR "/var/run/zm" CACHE PATH 
     "Location of transient process files, default: /var/run/zm")
@@ -115,9 +137,25 @@ set(ZM_WEB_USER "" CACHE STRING
 set(ZM_WEB_GROUP "" CACHE STRING 
     "The group apache or the local web server runs on, 
     Leave empty to be the same as the web user")
+set(ZM_DIR_EVENTS "events" CACHE PATH 
+    "Location where events are recorded to, default: events")
+set(ZM_DIR_IMAGES "events" CACHE PATH
+    "Location where images, not directly associated with events,
+     are recorded to, default: images")
+set(ZM_DIR_SOUNDS "sounds" CACHE PATH
+    "Location to look for optional sound files, default: sounds")
+set(ZM_PATH_ZMS "/cgi-bin/nph-zms" CACHE PATH
+    "Web url to zms streaming server, default: /cgi-bin/nph-zms")
+
 # Advanced
+set(ZM_PATH_MAP "/dev/shm" CACHE PATH
+    "Location to save mapped memory files, default: /dev/shm")
+set(ZM_PATH_ARP "" CACHE PATH
+    "Full path to compatible arp binary. Leave empty for automatic detection.")
 set(ZM_CONFIG_DIR "/${CMAKE_INSTALL_SYSCONFDIR}" CACHE PATH 
     "Location of ZoneMinder configuration, default system config directory")
+set(ZM_CONFIG_SUBDIR "${ZM_CONFIG_DIR}/conf.d" CACHE PATH 
+    "Location of ZoneMinder configuration subfolder, default: ZM_CONFIG_DIR/conf.d")
 set(ZM_EXTRA_LIBS "" CACHE STRING 
     "A list of optional libraries, separated by semicolons, e.g. ssl;theora")
 set(ZM_MYSQL_ENGINE "InnoDB" CACHE STRING 
@@ -147,32 +185,23 @@ set(ZM_PERL_SEARCH_PATH "" CACHE PATH
 	where ZM_PERL_MM_PARMS has been modified such that ZoneMinder's Perl modules are 
 	installed outside Perl's default search path.")
 set(ZM_TARGET_DISTRO "" CACHE STRING 
-    "Build ZoneMinder for a specific distribution.  Currently, valid names are: f23, f24, el6, el7, OS13, FreeBSD")
+    "Build ZoneMinder for a specific distribution.  Currently, valid names are: fc24, fc25, el6, el7, OS13, FreeBSD")
+set(ZM_SYSTEMD "OFF" CACHE BOOL 
+    "Set to ON to force building ZM with systemd support. default: OFF")
 
 # Reassign some variables if a target distro has been specified
-if((ZM_TARGET_DISTRO STREQUAL "f23") OR (ZM_TARGET_DISTRO STREQUAL "f24"))
+if((ZM_TARGET_DISTRO MATCHES "^el") OR (ZM_TARGET_DISTRO MATCHES "^fc"))
 	set(ZM_RUNDIR "/var/run/zoneminder")
 	set(ZM_SOCKDIR "/var/lib/zoneminder/sock")
 	set(ZM_TMPDIR "/var/lib/zoneminder/temp")
 	set(ZM_LOGDIR "/var/log/zoneminder")
 	set(ZM_CONFIG_DIR "/etc/zm")
+        set(ZM_CONFIG_SUBDIR "/etc/zm/conf.d")
 	set(ZM_WEBDIR "/usr/share/zoneminder/www")
 	set(ZM_CGIDIR "/usr/libexec/zoneminder/cgi-bin")
-elseif(ZM_TARGET_DISTRO STREQUAL "el6")
-	set(ZM_RUNDIR "/var/run/zoneminder")
-	set(ZM_SOCKDIR "/var/lib/zoneminder/sock")
-	set(ZM_TMPDIR "/var/lib/zoneminder/temp")
-	set(ZM_LOGDIR "/var/log/zoneminder")
-	set(ZM_WEBDIR "/usr/share/zoneminder/www")
-	set(ZM_CGIDIR "/usr/libexec/zoneminder/cgi-bin")
-elseif(ZM_TARGET_DISTRO STREQUAL "el7")
-	set(ZM_RUNDIR "/var/run/zoneminder")
-	set(ZM_SOCKDIR "/var/lib/zoneminder/sock")
-	set(ZM_TMPDIR "/var/lib/zoneminder/temp")
-	set(ZM_LOGDIR "/var/log/zoneminder")
-	set(ZM_CONFIG_DIR "/etc/zm")
-	set(ZM_WEBDIR "/usr/share/zoneminder/www")
-	set(ZM_CGIDIR "/usr/libexec/zoneminder/cgi-bin")
+	set(ZM_DIR_EVENTS "/var/lib/zoneminder/events")
+	set(ZM_DIR_IMAGES "/var/lib/zoneminder/images")
+	set(ZM_PATH_ZMS "/cgi-bin-zm/nph-zms")
 elseif(ZM_TARGET_DISTRO STREQUAL "OS13")
 	set(ZM_RUNDIR "/var/run/zoneminder")
 	set(ZM_TMPDIR "/var/run/zoneminder")
@@ -190,10 +219,11 @@ elseif(ZM_TARGET_DISTRO STREQUAL "FreeBSD")
         set(ZM_WEB_USER "www")
         set(ZM_WEB_GROUP "www")
         set(ZM_CONFIG_DIR "/usr/local/etc/zm")
+        set(ZM_CONFIG_SUBDIR "/usr/local/etc/zm/conf.d")
         set(ZM_WEBDIR "/usr/local/share/zoneminder/www")
         set(ZM_CGIDIR "/usr/local/libexec/zoneminder/cgi-bin")
         set(ZM_PERL_MM_PARMS "INSTALLDIRS=site")
-endif((ZM_TARGET_DISTRO STREQUAL "f23") OR (ZM_TARGET_DISTRO STREQUAL "f24"))
+endif((ZM_TARGET_DISTRO MATCHES "^el") OR (ZM_TARGET_DISTRO MATCHES "^fc"))
 
 # Required for certain checks to work
 set(CMAKE_EXTRA_INCLUDE_FILES 
@@ -203,6 +233,11 @@ set(CMAKE_EXTRA_INCLUDE_FILES
 include_directories("${CMAKE_BINARY_DIR}")
 # This is required to enable searching in lib64 (if exists), do not change
 set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS ON)
+
+# Set the systemd flag if systemd is autodetected or ZM_SYSTEMD has been set
+if(ZM_SYSTEMD OR (IS_DIRECTORY /usr/lib/systemd/system) OR (IS_DIRECTORY /lib/systemd/system))
+    set(WITH_SYSTEMD 1)
+endif(ZM_SYSTEMD OR (IS_DIRECTORY /usr/lib/systemd/system) OR (IS_DIRECTORY /lib/systemd/system))
 
 # System checks
 check_include_file("libv4l1-videodev.h" HAVE_LIBV4L1_VIDEODEV_H)
@@ -385,13 +420,13 @@ find_library(MYSQLCLIENT_LIBRARIES mysqlclient PATH_SUFFIXES mysql)
 if(MYSQLCLIENT_LIBRARIES)
 	set(HAVE_LIBMYSQLCLIENT 1)
 	list(APPEND ZM_BIN_LIBS "${MYSQLCLIENT_LIBRARIES}")
-	find_path(MYSQLCLIENT_INCLUDE_DIR mysql/mysql.h)
+	find_path(MYSQLCLIENT_INCLUDE_DIR mysql.h PATH_SUFFIXES mysql)
 	if(MYSQLCLIENT_INCLUDE_DIR)
 		include_directories("${MYSQLCLIENT_INCLUDE_DIR}")
 		set(CMAKE_REQUIRED_INCLUDES "${MYSQLCLIENT_INCLUDE_DIR}")
 	endif(MYSQLCLIENT_INCLUDE_DIR)
 	mark_as_advanced(FORCE MYSQLCLIENT_LIBRARIES MYSQLCLIENT_INCLUDE_DIR)
-	check_include_file("mysql/mysql.h" HAVE_MYSQL_H)
+	check_include_file("mysql.h" HAVE_MYSQL_H)
 	if(NOT HAVE_MYSQL_H)
 		message(FATAL_ERROR 
                     "ZoneMinder requires MySQL headers - check that MySQL development packages are installed")
@@ -545,21 +580,21 @@ if(NOT ZM_NO_FFMPEG)
 	endif(SWSCALE_LIBRARIES)
 
 	# rescale (using find_library and find_path)
-	find_library(SWRESAMPLE_LIBRARIES swresample)
-	if(SWRESAMPLE_LIBRARIES)
-		set(HAVE_LIBSWRESAMPLE 1)
-		list(APPEND ZM_BIN_LIBS "${SWRESAMPLE_LIBRARIES}")
-		find_path(SWRESAMPLE_INCLUDE_DIR "libswresample/swresample.h" /usr/include/ffmpeg)
-		if(SWRESAMPLE_INCLUDE_DIR)
-			include_directories("${SWRESAMPLE_INCLUDE_DIR}")
-			set(CMAKE_REQUIRED_INCLUDES "${SWRESAMPLE_INCLUDE_DIR}")
-		endif(SWRESAMPLE_INCLUDE_DIR)
-		mark_as_advanced(FORCE SWRESAMPLE_LIBRARIES SWRESAMPLE_INCLUDE_DIR)
-		check_include_file("libswresample/swresample.h" HAVE_LIBSWRESAMPLE_SWRESAMPLE_H)
-		set(optlibsfound "${optlibsfound} SWResample")
-	else(SWRESAMPLE_LIBRARIES)
-		set(optlibsnotfound "${optlibsnotfound} SWResample")
-	endif(SWRESAMPLE_LIBRARIES)
+	find_library(AVRESAMPLE_LIBRARIES avresample)
+	if(AVRESAMPLE_LIBRARIES)
+		set(HAVE_LIBAVRESAMPLE 1)
+		list(APPEND ZM_BIN_LIBS "${AVRESAMPLE_LIBRARIES}")
+		find_path(AVRESAMPLE_INCLUDE_DIR "libavresample/avresample.h" /usr/include/ffmpeg)
+		if(AVRESAMPLE_INCLUDE_DIR)
+			include_directories("${AVRESAMPLE_INCLUDE_DIR}")
+			set(CMAKE_REQUIRED_INCLUDES "${AVRESAMPLE_INCLUDE_DIR}")
+		endif(AVRESAMPLE_INCLUDE_DIR)
+		mark_as_advanced(FORCE AVRESAMPLE_LIBRARIES AVRESAMPLE_INCLUDE_DIR)
+		check_include_file("libavresample/avresample.h" HAVE_LIBAVRESAMPLE_AVRESAMPLE_H)
+		set(optlibsfound "${optlibsfound} AVResample")
+	else(AVRESAMPLE_LIBRARIES)
+		set(optlibsnotfound "${optlibsnotfound} AVResample")
+	endif(AVRESAMPLE_LIBRARIES)
 
 	# Find the path to the ffmpeg executable
 	find_program(FFMPEG_EXECUTABLE 
@@ -735,12 +770,14 @@ endif(NOT ZM_WEB_GROUP)
 message(STATUS "Using web user: ${ZM_WEB_USER}")
 message(STATUS "Using web group: ${ZM_WEB_GROUP}")
 
-# Check for polkit
-find_package(Polkit)
-if(NOT POLKIT_FOUND)
-	message(FATAL_ERROR 
-            "Running ZoneMinder requires polkit. Building ZoneMinder requires the polkit development package.")
-endif(NOT POLKIT_FOUND)
+if(WITH_SYSTEMD)
+    # Check for polkit
+    find_package(Polkit)
+    if(NOT POLKIT_FOUND)
+	    message(FATAL_ERROR 
+                "Running ZoneMinder requires polkit. Building ZoneMinder requires the polkit development package.")
+    endif(NOT POLKIT_FOUND)
+endif(WITH_SYSTEMD)
 
 # Some variables that zm expects
 set(ZM_PID "${ZM_RUNDIR}/zm.pid")
@@ -761,6 +798,11 @@ if(ZM_PERL_SEARCH_PATH)
 else(ZM_PERL_SEARCH_PATH)
 	set(EXTRA_PERL_LIB "# Include from system perl paths only")
 endif(ZM_PERL_SEARCH_PATH)
+
+# If this is an out-of-source build, copy the files we need to the binary directory
+if(NOT (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR))
+	file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/conf.d" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/conf.d")
+endif(NOT (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR))
 
 # Generate files from the .in files
 configure_file(zm.conf.in "${CMAKE_CURRENT_BINARY_DIR}/zm.conf" @ONLY)
@@ -785,13 +827,11 @@ if(ZM_ONVIF)
 endif(ZM_ONVIF)
 
 # Process distro subdirectories
-if((ZM_TARGET_DISTRO STREQUAL "f23") OR (ZM_TARGET_DISTRO STREQUAL "f24"))
-	add_subdirectory(distros/fedora)
-elseif((ZM_TARGET_DISTRO STREQUAL "el6") OR (ZM_TARGET_DISTRO STREQUAL "el7"))
+if((ZM_TARGET_DISTRO MATCHES "^el") OR (ZM_TARGET_DISTRO MATCHES "^fc"))
 	add_subdirectory(distros/redhat)
 elseif(ZM_TARGET_DISTRO STREQUAL "OS13")
 	add_subdirectory(distros/opensuse)
-endif((ZM_TARGET_DISTRO STREQUAL "f23") OR (ZM_TARGET_DISTRO STREQUAL "f24"))
+endif((ZM_TARGET_DISTRO MATCHES "^el") OR (ZM_TARGET_DISTRO MATCHES "^fc"))
 
 # Print optional libraries detection status
 message(STATUS "Optional libraries found:${optlibsfound}")
@@ -810,6 +850,18 @@ endif(zmconfgen_result EQUAL 0)
 
 # Install zm.conf
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/zm.conf" DESTINATION "${ZM_CONFIG_DIR}")
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/conf.d/" DESTINATION "${ZM_CONFIG_SUBDIR}")
+#install(CODE "
+#if (NOT EXISTS \"${ZM_CONFIG_DIR}/zm.conf\")
+  #message(STATUS \"No zm.conf at ${CMAKE_CURRENT_BINARY_DIR}/zm.conf. Will install a new zm.conf\")
+  #install(FILES \"${CMAKE_CURRENT_BINARY_DIR}/zm.conf\" DESTINATION \"${ZM_CONFIG_DIR}\")
+#else (NOT EXISTS \"${ZM_CONFIG_DIR}/zm.conf\")
+  #message(STATUS \"Found zm.conf at ${CMAKE_CURRENT_BINARY_DIR}/zm.conf. Not overwriting.  Installing zm.conf.new instead.\")
+  #file(RENAME \"${CMAKE_CURRENT_BINARY_DIR}/zm.conf\" \"${CMAKE_CURRENT_BINARY_DIR}/zm.conf.new\")
+  #install(FILES \"${CMAKE_CURRENT_BINARY_DIR}/zm.conf.new\" DESTINATION \"${ZM_CONFIG_DIR}\")
+#endif(NOT EXISTS \"${ZM_CONFIG_DIR}/zm.conf\")
+#")
+
 
 # Uninstall target
 configure_file(
@@ -825,3 +877,5 @@ if(CCACHE_FOUND)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
+
+install(DIRECTORY icons DESTINATION "${CMAKE_INSTALL_DATADIR}/zoneminder/")

@@ -14,7 +14,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */  
 
 #ifndef ZM_FFMPEG_H
@@ -323,6 +323,11 @@ static av_always_inline av_const int64_t av_clip64_c(int64_t a, int64_t amin, in
 #endif
 
 void zm_dump_stream_format(AVFormatContext *ic, int i, int index, int is_output);
+void zm_dump_codec ( const AVCodecContext *codec );
+#if LIBAVCODEC_VERSION_CHECK(57, 64, 0, 64, 0)
+void zm_dump_codecpar ( const AVCodecParameters *par );
+#endif
+
 #if LIBAVCODEC_VERSION_CHECK(56, 8, 0, 60, 100)
     #define zm_av_packet_unref( packet ) av_packet_unref( packet )
     #define zm_av_packet_ref( dst, src ) av_packet_ref( dst, src )
@@ -342,6 +347,9 @@ unsigned int zm_av_packet_ref( AVPacket *dst, AVPacket *src );
   #define zm_av_frame_alloc() avcodec_alloc_frame()
 #endif
 
+#if ! LIBAVCODEC_VERSION_CHECK(55, 28, 1, 45, 101)
+  #define av_frame_free( input_avframe ) av_freep( input_avframe )
+#endif   
 
 int check_sample_fmt(AVCodec *codec, enum AVSampleFormat sample_fmt);
 

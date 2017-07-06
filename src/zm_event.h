@@ -14,7 +14,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // 
 
 #ifndef ZM_EVENT_H
@@ -65,7 +65,8 @@ class Event {
     typedef std::map<std::string,StringSet> StringSetMap;
 
   protected:
-    typedef enum { NORMAL, BULK, ALARM } FrameType;
+    typedef enum { NORMAL=0, BULK, ALARM } FrameType;
+    static const char * frame_type_names[3];
 
     struct PreAlarmData {
       Image *image;
@@ -130,6 +131,7 @@ class Event {
 
     const struct timeval &StartTime() const { return( start_time ); }
     const struct timeval &EndTime() const { return( end_time ); }
+    struct timeval &StartTime() { return( start_time ); }
     struct timeval &EndTime() { return( end_time ); }
 
     bool SendFrameImage( const Image *image, bool alarm_frame=false );
@@ -227,6 +229,7 @@ class EventStream : public StreamBase {
   protected:
     int curr_frame_id;
     double curr_stream_time;
+    bool send_frame;          // Used as a flag whether or not to send out a frame.
 
     EventData *event_data;
 

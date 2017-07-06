@@ -15,7 +15,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
 
@@ -103,6 +103,7 @@ if ( !empty($action) ) {
     userLogin( $username, $password );
     $refreshParent = true;
     $view = 'console';
+    $redirect = true;
   } else if ( $action == 'logout' ) {
     userLogout();
     $refreshParent = true;
@@ -116,96 +117,86 @@ if ( !empty($action) ) {
   // Event scope actions, view permissions only required
   if ( canView( 'Events' ) ) {
 
-    if ( $action == 'filter' ) {
-      if ( !empty($_REQUEST['subaction']) ) {
-        if ( $_REQUEST['subaction'] == 'addterm' )
-          $_REQUEST['filter'] = addFilterTerm( $_REQUEST['filter'], $_REQUEST['line'] );
-        elseif ( $_REQUEST['subaction'] == 'delterm' )
-          $_REQUEST['filter'] = delFilterTerm( $_REQUEST['filter'], $_REQUEST['line'] );
-      } elseif ( canEdit( 'Events' ) ) {
-        $sql = '';
-        $endSql = '';
-        $filterName = '';
-        if ( !empty($_REQUEST['execute']) ) {
-          // TempFilterName is used in event listing later on
-          $tempFilterName = $filterName = '_TempFilter'.time();
-        } elseif ( !empty($_REQUEST['newFilterName']) ) {
-          $filterName = $_REQUEST['newFilterName'];
-        }
-        if ( $filterName ) {
-          $sql = "REPLACE INTO Filters SET Name = ".dbEscape($filterName).",";
-        } else {
-          $sql = 'UPDATE Filters SET';
-          $endSql = "where Id = ".$_REQUEST['Id'];
-        }
-        if ( !empty($filterName) || $endSql ) {
-          $_REQUEST['filter']['sort_field'] = validStr($_REQUEST['sort_field']);
-          $_REQUEST['filter']['sort_asc'] = validStr($_REQUEST['sort_asc']);
-          $_REQUEST['filter']['limit'] = validInt($_REQUEST['limit']);
-          $sql .= " Query = ".dbEscape(jsonEncode($_REQUEST['filter']));
-          if ( !empty($_REQUEST['AutoArchive']) )
-            $sql .= ", AutoArchive = ".dbEscape($_REQUEST['AutoArchive']);
-          if ( !empty($_REQUEST['AutoVideo']) )
-            $sql .= ", AutoVideo = ".dbEscape($_REQUEST['AutoVideo']);
-          if ( !empty($_REQUEST['AutoUpload']) )
-            $sql .= ", AutoUpload = ".dbEscape($_REQUEST['AutoUpload']);
-          if ( !empty($_REQUEST['AutoEmail']) )
-            $sql .= ", AutoEmail = ".dbEscape($_REQUEST['AutoEmail']);
-          if ( !empty($_REQUEST['AutoMessage']) )
-            $sql .= ", AutoMessage = ".dbEscape($_REQUEST['AutoMessage']);
-          if ( !empty($_REQUEST['AutoExecute']) && !empty($_REQUEST['AutoExecuteCmd']) )
-            $sql .= ", AutoExecute = ".dbEscape($_REQUEST['AutoExecute']).", AutoExecuteCmd = ".dbEscape($_REQUEST['AutoExecuteCmd']);
-          if ( !empty($_REQUEST['AutoDelete']) )
-            $sql .= ", AutoDelete = ".dbEscape($_REQUEST['AutoDelete']);
-          if ( !empty($_REQUEST['background']) )
-            $sql .= ", Background = ".dbEscape($_REQUEST['background']);
-          if ( !empty($_REQUEST['concurrent']) )
-            $sql .= ", Concurrent = ".dbEscape($_REQUEST['concurrent']);
-          $sql .= $endSql;
-          dbQuery( $sql );
-          $refreshParent = true;
-        }
-      } // end if canedit events
-    } // end if action == filter
-  } // end if canview events
+    if ( isset( $_REQUEST['object'] ) and ( $_REQUEST['object'] == 'filter' ) ) {
+      if ( $action == 'addterm' ) {
+Warning("Addterm");
+        $_REQUEST['filter'] = addFilterTerm( $_REQUEST['filter'], $_REQUEST['line'] );
+      } elseif ( $action == 'delterm' ) {
+        $_REQUEST['filter'] = delFilterTerm( $_REQUEST['filter'], $_REQUEST['line'] );
+      } else if ( canEdit( 'Events' ) ) {
+        if ( $action == 'delete' ) {
+          if ( ! empty($_REQUEST['Id']) ) {
+            dbQuery( 'DELETE FROM Filters WHERE Id=?', array( $_REQUEST['Id'] ) );
+          }
+        } else if ( ( $action == 'save' ) or ( $action == 'execute' ) or ( $action == 'submit' ) ) {
 
-  // Event scope actions, edit permissions required
-  if ( canEdit( 'Events' ) ) {
-    if ( $action == 'rename' && isset($_REQUEST['eventName']) && !empty($_REQUEST['eid']) ) {
-      dbQuery( 'UPDATE Events SET Name=? WHERE Id=?', array( $_REQUEST['eventName'], $_REQUEST['eid'] ) );
-    } else if ( $action == 'eventdetail' ) {
-      if ( !empty($_REQUEST['eid']) ) {
-        dbQuery( 'UPDATE Events SET Cause=?, Notes=? WHERE Id=?', array( $_REQUEST['newEvent']['Cause'], $_REQUEST['newEvent']['Notes'], $_REQUEST['eid'] ) );
-        $refreshParent = true;
-      } else {
-        foreach( getAffectedIds( 'markEid' ) as $markEid ) {
-          dbQuery( 'UPDATE Events SET Cause=?, Notes=? WHERE Id=?', array( $_REQUEST['newEvent']['Cause'], $_REQUEST['newEvent']['Notes'], $markEid ) );
+          $sql = '';
+          $_REQUEST['filter']['Query']['sort_field'] = validStr($_REQUEST['filter']['Query']['sort_field']);
+          $_REQUEST['filter']['Query']['sort_asc'] = validStr($_REQUEST['filter']['Query']['sort_asc']);
+          $_REQUEST['filter']['Query']['limit'] = validInt($_REQUEST['filter']['Query']['limit']);
+          if ( $action == 'execute' or $action == 'submit' ) {
+            $sql .= ' Name = \'_TempFilter'.time().'\'';
+          } else {
+            $sql .= ' Name = '.dbEscape($_REQUEST['filter']['Name']);
+          }
+          $sql .= ', Query = '.dbEscape(jsonEncode($_REQUEST['filter']['Query']));
+          $sql .= ', AutoArchive = '.(!empty($_REQUEST['filter']['AutoArchive']) ? 1 : 0);
+          $sql .= ', AutoVideo = '. ( !empty($_REQUEST['filter']['AutoVideo']) ? 1 : 0);
+          $sql .= ', AutoUpload = '. ( !empty($_REQUEST['filter']['AutoUpload']) ? 1 : 0);
+          $sql .= ', AutoEmail = '. ( !empty($_REQUEST['filter']['AutoEmail']) ? 1 : 0);
+          $sql .= ', AutoMessage = '. ( !empty($_REQUEST['filter']['AutoMessage']) ? 1 : 0);
+          $sql .= ', AutoExecute = '. ( !empty($_REQUEST['filter']['AutoExecute']) ? 1 : 0);
+          $sql .= ', AutoExecuteCmd = '.dbEscape($_REQUEST['filter']['AutoExecuteCmd']);
+          $sql .= ', AutoDelete = '. ( !empty($_REQUEST['filter']['AutoDelete']) ? 1 : 0);
+          $sql .= ', Background = '. ( !empty($_REQUEST['filter']['Background']) ? 1 : 0);
+          $sql .= ', Concurrent  = '. ( !empty($_REQUEST['filter']['Concurrent']) ? 1 : 0);
+
+          if ( $_REQUEST['Id'] ) {
+            dbQuery( 'UPDATE Filters SET ' . $sql. ' WHERE Id=?', array($_REQUEST['Id']) );
+          } else {
+            dbQuery( 'INSERT INTO Filters SET' . $sql );
+            $_REQUEST['Id'] = dbInsertId();
+          }
+
+        } // end if save or execute
+      } // end if canEdit(Events)
+      return;
+    } // end if object == filter
+      else {
+
+      // Event scope actions, edit permissions required
+      if ( canEdit( 'Events' ) ) {
+        if ( $action == 'rename' && isset($_REQUEST['eventName']) && !empty($_REQUEST['eid']) ) {
+          dbQuery( 'UPDATE Events SET Name=? WHERE Id=?', array( $_REQUEST['eventName'], $_REQUEST['eid'] ) );
+        } else if ( $action == 'eventdetail' ) {
+          if ( !empty($_REQUEST['eid']) ) {
+            dbQuery( 'UPDATE Events SET Cause=?, Notes=? WHERE Id=?', array( $_REQUEST['newEvent']['Cause'], $_REQUEST['newEvent']['Notes'], $_REQUEST['eid'] ) );
+          } else {
+            foreach( getAffectedIds( 'markEid' ) as $markEid ) {
+              dbQuery( 'UPDATE Events SET Cause=?, Notes=? WHERE Id=?', array( $_REQUEST['newEvent']['Cause'], $_REQUEST['newEvent']['Notes'], $markEid ) );
+            }
+          }
+          $refreshParent = true;
+          $closePopup = true;
+        } elseif ( $action == 'archive' || $action == 'unarchive' ) {
+          $archiveVal = ($action == 'archive')?1:0;
+          if ( !empty($_REQUEST['eid']) ) {
+            dbQuery( 'UPDATE Events SET Archived=? WHERE Id=?', array( $archiveVal, $_REQUEST['eid']) );
+          } else {
+            foreach( getAffectedIds( 'markEid' ) as $markEid ) {
+              dbQuery( 'UPDATE Events SET Archived=? WHERE Id=?', array( $archiveVal, $markEid ) );
+            }
+            $refreshParent = true;
+          }
+        } elseif ( $action == 'delete' ) {
+          foreach( getAffectedIds( 'markEid' ) as $markEid ) {
+            deleteEvent( $markEid );
+          }
           $refreshParent = true;
         }
-      }
-    } elseif ( $action == 'archive' || $action == 'unarchive' ) {
-      $archiveVal = ($action == 'archive')?1:0;
-      if ( !empty($_REQUEST['eid']) ) {
-        dbQuery( 'UPDATE Events SET Archived=? WHERE Id=?', array( $archiveVal, $_REQUEST['eid']) );
-      } else {
-        foreach( getAffectedIds( 'markEid' ) as $markEid ) {
-          dbQuery( 'UPDATE Events SET Archived=? WHERE Id=?', array( $archiveVal, $markEid ) );
-          $refreshParent = true;
-        }
-      }
-    } elseif ( $action == 'delete' ) {
-      foreach( getAffectedIds( 'markEid' ) as $markEid ) {
-        deleteEvent( $markEid );
-        $refreshParent = true;
-      }
-      if ( isset( $_REQUEST['object'] ) and ( $_REQUEST['object'] == 'filter' ) ) {
-        if ( !empty($_REQUEST['Id']) ) {
-          dbQuery( 'DELETE FROM Filters WHERE Id=?', array( $_REQUEST['Id'] ) );
-          //$refreshParent = true;
-        }
-      }
-    }
-  }
+      } // end if canEdit(Events)
+    } // end if filter or something else
+  } // end canView(Events)
 
   // Monitor control actions, require a monitor id and control view permissions for that monitor
   if ( !empty($_REQUEST['mid']) && canView( 'Control', $_REQUEST['mid'] ) ) {
@@ -454,6 +445,10 @@ Error("Editing monitor $mid");
 
       if ( count( $changes ) ) {
         if ( $mid ) {
+
+          # If we change anything that changes the shared mem size, zma can complain.  So let's stop first.
+          zmaControl( $monitor, 'stop' );
+          zmcControl( $monitor, 'stop' );
           dbQuery( 'UPDATE Monitors SET '.implode( ", ", $changes ).' WHERE Id =?', array($mid) );
           if ( isset($changes['Name']) ) {
             $saferOldName = basename( $monitor['Name'] );
@@ -522,7 +517,7 @@ Error("Editing monitor $mid");
             dbQuery( "update TriggersX10 set ".implode( ", ", $x10Changes )." where MonitorId=?", array($mid) );
           } elseif ( !$user['MonitorIds'] ) {
             if ( !$x10Monitor ) {
-              dbQuery( "insert into TriggersX10 set MonitorId = ?".implode( ", ", $x10Changes ), array( $mid ) );
+              dbQuery( "insert into TriggersX10 set MonitorId = ?, ".implode( ", ", $x10Changes ), array( $mid ) );
             } else {
               dbQuery( "delete from TriggersX10 where MonitorId = ?", array($mid) );
             }
@@ -537,19 +532,14 @@ Error("Editing monitor $mid");
         //fixDevices();
         //if ( $cookies )
         //session_write_close();
-        if ( daemonCheck() ) {
-          zmaControl( $monitor, 'stop' );
-          zmcControl( $monitor, 'stop' );
 
-          zmcControl( $new_monitor, 'start' );
-          zmaControl( $new_monitor, 'start' );
-        } else {
-        Debug("daemoncheck failed");
-        }
+        zmcControl( $new_monitor, 'start' );
+        zmaControl( $new_monitor, 'start' );
         if ( $monitor['Controllable'] ) {
           require_once( 'control_functions.php' );
           sendControlCommand( $mid, 'quit' );
         } 
+        // really should thump zmwatch and maybe zmtrigger too.
         //daemonControl( 'restart', 'zmwatch.pl' );
         $refreshParent = true;
       } else {
@@ -586,12 +576,12 @@ Error("Editing monitor $mid");
 
                 deletePath( ZM_DIR_EVENTS.'/'.basename($monitor['Name']) );
                 deletePath( ZM_DIR_EVENTS.'/'.$monitor['Id'] ); // I'm trusting the Id.  
-              }
-            }
-          }
-        }
-      }
-    }
+              } // end if ZM_OPT_FAST_DELETE
+            } // end if found the monitor in the db
+          } // end if canedit this monitor
+        } // end foreach monitor in MarkMid
+      } // markMids is set and we aren't limited to specific monitors
+    } // end if action == Delete
   }
 
   // Device view actions
@@ -803,7 +793,6 @@ Error("Editing monitor $mid");
         switch( $_REQUEST['tab'] ) {
           case 'system' :
           case 'config' :
-          case 'paths' :
             $restartWarning = true;
             break;
           case 'web' :
@@ -839,12 +828,13 @@ Error("Editing monitor $mid");
       if ( count( $changes ) ) {
         if ( !empty($_REQUEST['uid']) ) {
           dbQuery( "update Users set ".implode( ", ", $changes )." where Id = ?", array($_REQUEST['uid']) );
+          # If we are updating the logged in user, then update our session user data.
+          if ( $user and ( $dbUser['Username'] == $user['Username'] ) )
+            userLogin( $dbUser['Username'], $dbUser['Password'] );
         } else {
           dbQuery( "insert into Users set ".implode( ", ", $changes ) );
         }
         $refreshParent = true;
-        if ( $dbUser['Username'] == $user['Username'] )
-          userLogin( $dbUser['Username'], $dbUser['Password'] );
       }
       $view = 'none';
     } elseif ( $action == 'state' ) {

@@ -14,7 +14,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 
 //
@@ -33,14 +33,13 @@ var popupSizes = {
     'device':       { 'width': 260, 'height': 150 },
     'devices':      { 'width': 400, 'height': 240 },
     'donate':       { 'width': 500, 'height': 280 },
-    'event':        { 'addWidth': 108, 'minWidth': 496, 'addHeight': 230, minHeight: 540 },
-    'eventdetail':  { 'width': 600, 'height': 220 },
+    'event':        { 'addWidth': 108, 'minWidth': 496, 'addHeight': 230, 'minHeight': 540 },
+    'eventdetail':  { 'width': 600, 'height': 420 },
     'events':       { 'width': 960, 'height': 780 },
     'export':       { 'width': 400, 'height': 340 },
-    'filter':       { 'width': 820, 'height': 360 },
-    'filtersave':   { 'width': 610, 'height': 120 },
-    'frame':        { 'addWidth': 32, 'minWidth': 384, 'addHeight': 100 },
-    'frames':       { 'width': 600, 'height': 600 },
+    'filter':       { 'width': 820, 'height': 700 },
+    'frame':        { 'addWidth': 32, 'minWidth': 384, 'addHeight': 200 },
+    'frames':       { 'width': 600, 'height': 700 },
     'function':     { 'width': 300, 'height': 92 },
     'group':        { 'width': 360, 'height': 180 },
     'groups':       { 'width': 440, 'height': 220 },

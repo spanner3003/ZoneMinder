@@ -15,38 +15,36 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // 
 
 
 // Don't load in additional JS to these views
 $bad_views = array('monitor', 'log');
 
-function xhtmlHeaders( $file, $title )
-{
-    global $css;
-    global $skin;
-    $skinCssFile = getSkinFile( 'css/'.$css.'/skin.css' );
-    $skinCssPhpFile = getSkinFile( 'css/'.$css.'/skin.css.php' );
+function xhtmlHeaders( $file, $title ) {
+  global $css;
+  global $skin;
+  $skinCssFile = getSkinFile( 'css/'.$css.'/skin.css' );
+  $skinCssPhpFile = getSkinFile( 'css/'.$css.'/skin.css.php' );
 
-    $skinJsFile = getSkinFile( 'js/skin.js' );
-    $skinJsPhpFile = getSkinFile( 'js/skin.js.php' );
-    $cssJsFile = getSkinFile( 'js/'.$css.'.js' );
+  $skinJsFile = getSkinFile( 'js/skin.js' );
+  $skinJsPhpFile = getSkinFile( 'js/skin.js.php' );
+  $cssJsFile = getSkinFile( 'js/'.$css.'.js' );
 
-    $basename = basename( $file, '.php' );
-    $viewCssFile = getSkinFile( '/css/'.$css.'/views/'.$basename.'.css' );
-    $viewCssPhpFile = getSkinFile( '/css/'.$css.'/views/'.$basename.'.css.php' );
-    $viewJsFile = getSkinFile( 'views/js/'.$basename.'.js' );
-    $viewJsPhpFile = getSkinFile( 'views/js/'.$basename.'.js.php' );
+  $basename = basename( $file, '.php' );
+  $viewCssFile = getSkinFile( '/css/'.$css.'/views/'.$basename.'.css' );
+  $viewCssPhpFile = getSkinFile( '/css/'.$css.'/views/'.$basename.'.css.php' );
+  $viewJsFile = getSkinFile( 'views/js/'.$basename.'.js' );
+  $viewJsPhpFile = getSkinFile( 'views/js/'.$basename.'.js.php' );
 
-    extract( $GLOBALS, EXTR_OVERWRITE );
+  extract( $GLOBALS, EXTR_OVERWRITE );
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maxiumum-scale=1.0, user-scalable=no">
   <title><?php echo ZM_WEB_TITLE_PREFIX ?> - <?php echo validHtmlStr($title) ?></title>
   <link rel="icon" type="image/ico" href="graphics/favicon.ico"/>
   <link rel="shortcut icon" href="graphics/favicon.ico"/>
@@ -55,56 +53,53 @@ function xhtmlHeaders( $file, $title )
   <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css"/>
   <link rel="stylesheet" href="<?php echo $skinCssFile ?>" type="text/css" media="screen"/>
 <?php
-    if ( $viewCssFile )
-    {
+  if ( $viewCssFile ) {
 ?>
   <link rel="stylesheet" href="<?php echo $viewCssFile ?>" type="text/css" media="screen"/>
 <?php
-    }
-    if ( $viewCssPhpFile )
-    {
+  }
+  if ( $viewCssPhpFile ) {
 ?>
   <style type="text/css">
   /*<![CDATA[*/
 <?php
-        require_once( $viewCssPhpFile );
+    require_once( $viewCssPhpFile );
 ?>
   /*]]>*/
   </style>
 <?php
-    }
+  }
 ?>
   <script type="text/javascript" src="tools/mootools/mootools-core.js"></script>
   <script type="text/javascript" src="tools/mootools/mootools-more.js"></script>
   <script type="text/javascript" src="js/mootools.ext.js"></script>
-<?php if ( !in_array($basename, $bad_views) ) { ?>
-  <!--<script type="text/javascript" src="js/overlay.js"></script>-->
-  <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/jquery-1.11.3.js"></script>
+  <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/jquery.js"></script>
+  <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/jquery-ui.js"></script>
   <script type="text/javascript" src="skins/<?php echo $skin; ?>/js/bootstrap.min.js"></script>
   <script type="text/javascript">
   //<![CDATA[
   <!--
-var $j = jQuery.noConflict();
-// $j is now an alias to the jQuery function; creating the new alias is optional.
+  var $j = jQuery.noConflict();
+  // $j is now an alias to the jQuery function; creating the new alias is optional.
 
-<?php include("skins/$skin/views/js/state.js.php")?>
   //-->
   //]]>
-</script>
+  </script>
   <script type="text/javascript" src="skins/<?php echo $skin; ?>/views/js/state.js"></script>
-<?php } ?>
-<?php if ( $title == 'Login' && (defined('ZM_OPT_USE_GOOG_RECAPTCHA') && ZM_OPT_USE_GOOG_RECAPTCHA) ) { ?>
-  <script src='https://www.google.com/recaptcha/api.js'></script>
-<?php } else if ( $title == 'Event' ) {
-?>
-        <link href="//vjs.zencdn.net/4.11/video-js.css" rel="stylesheet">
-        <script src="//vjs.zencdn.net/4.11/video.js"></script>
-        <script src="./js/videojs.zoomrotate.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
 <?php
-    }
-    if ( $skinJsPhpFile )
-    {
+  if ( $title == 'Login' && (defined('ZM_OPT_USE_GOOG_RECAPTCHA') && ZM_OPT_USE_GOOG_RECAPTCHA) ) {
+?>
+  <script src='https://www.google.com/recaptcha/api.js'></script>
+<?php
+  } else if ( $title == 'Event' ) {
+?>
+  <link href="skins/<?php echo $skin ?>/js/video-js.css" rel="stylesheet">
+  <script src="skins/<?php echo $skin ?>/js/video.js"></script>
+  <script src="./js/videojs.zoomrotate.js"></script>
+  <script src="skins/<?php echo $skin ?>/js/moment.min.js"></script>
+<?php
+  }
+  if ( $skinJsPhpFile ) {
 ?>
   <script type="text/javascript">
   //<![CDATA[
@@ -116,21 +111,20 @@ var $j = jQuery.noConflict();
   //]]>
   </script>
 <?php
-    }
-    if ( $viewJsPhpFile )
-    {
+  }
+  if ( $viewJsPhpFile ) {
 ?>
   <script type="text/javascript">
   //<![CDATA[
   <!--
 <?php
-        require_once( $viewJsPhpFile );
+    require_once( $viewJsPhpFile );
 ?>
   //-->
   //]]>
   </script>
 <?php
-    }
+  }
 	if ( $cssJsFile ) {
 ?>
   <script type="text/javascript" src="<?php echo $cssJsFile ?>"></script>
@@ -138,16 +132,15 @@ var $j = jQuery.noConflict();
   <script type="text/javascript" src="<?php echo $skinJsFile ?>"></script>
   <script type="text/javascript" src="js/logger.js"></script>
 <?php
-    if ( $viewJsFile )
-    {
+  if ( $viewJsFile ) {
 ?>
   <script type="text/javascript" src="<?php echo $viewJsFile ?>"></script>
 <?php
-    }
+  }
 ?>
 </head>
 <?php
-}
+} // end function xhtmlHeaders( $file, $title )
 
 function getNavBarHTML() {
 
@@ -184,7 +177,6 @@ function getNavBarHTML() {
   $cycleWidth = $maxWidth;
   $cycleHeight = $maxHeight;
 
-
   $versionClass = (ZM_DYN_DB_VERSION&&(ZM_DYN_DB_VERSION!=ZM_VERSION))?'errorText':'';
 
   ob_start();
@@ -199,7 +191,7 @@ function getNavBarHTML() {
   global $user;
   global $bwArray;
 ?>
-<div class="navbar navbar-inverse navbar-fixed-top">
+<div class="navbar navbar-inverse navbar-static-top">
 	<div class="container-fluid">
 		<div class="navbar-header">
 			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-header-nav" aria-expanded="false">
@@ -222,18 +214,22 @@ function getNavBarHTML() {
 			<li><a href="/?view=devices">Devices</a></li>
 <?php } ?>
 			<li><?php echo makePopupLink( '?view=groups', 'zmGroups', 'groups', sprintf( $CLANG['MonitorCount'], count($displayMonitors), zmVlang( $VLANG['Monitor'], count($displayMonitors) ) ).($group?' ('.$group['Name'].')':''), canView( 'Groups' ) ); ?></li>
-			<li><?php echo makePopupLink( '?view=filter&amp;filter[terms][0][attr]=DateTime&amp;filter[terms][0][op]=%3c&amp;filter[terms][0][val]=now', 'zmFilter', 'filter', translate('Filters'), canView( 'Events' ) ) ?></li>
+			<li><a href="/?view=filter">Filters</a></li>
 
 <?php 
-$cycleGroup = isset($_COOKIE['zmGroup'])?$_COOKIE['zmGroup']:0;
-if ( canView( 'Stream' ) && $cycleCount > 1 ) {
+  $cycleGroup = isset($_COOKIE['zmGroup'])?$_COOKIE['zmGroup']:0;
+  if ( canView( 'Stream' ) && $cycleCount > 1 ) {
 ?>
 					<li><?php echo makePopupLink( '?view=cycle&amp;group='.$cycleGroup, 'zmCycle'.$cycleGroup, array( 'cycle', $cycleWidth, $cycleHeight ), translate('Cycle'), $running ) ?></li>
 					<li><?php echo makePopupLink( '?view=montage&amp;group='.$cycleGroup, 'zmMontage'.$cycleGroup, 'montage', translate('Montage'), $running ) ?></li>
-<?php } ?>
-<?php if ( canView('Events') ) { ?>
+<?php
+   }
+  if ( canView('Events') ) {
+ ?>
 					<li><?php echo makePopupLink( '?view=montagereview&amp;group='.$cycleGroup, 'zmMontageReview'.$cycleGroup, 'montagereview', translate('MontageReview') ) ?></li>
-<?php } ?>
+<?php
+  }
+?>
 		</ul>
 
 <div class="navbar-right">
@@ -262,12 +258,23 @@ if ( canView( 'Stream' ) && $cycleCount > 1 ) {
   </div>
   <ul class="list-inline">
 	  <li><?php echo translate('Load') ?>: <?php echo getLoad() ?></li>
-	  <li><?php echo translate('Storage') ?>: <?php
-
-    $storage_areas = Storage::find_all();
+<?php 
+  $connections = dbFetchOne( "SHOW status WHERE variable_name='threads_connected'", 'Value' );
+  $max_connections = dbFetchOne( "SHOW variables WHERE variable_name='max_connections'", 'Value' );
+  $percent_used = 100 * $connections / $max_connections;
+  echo '<li'. ( $percent_used > 90 ? ' class="warning"' : '' ).'>'.translate('DB').':'.$connections.'/'.$max_connections.'</li>';
+?>
+	  <li><?php echo translate('Storage') ?>:
+<?php
+  $storage_areas = Storage::find_all();
+  $storage_paths = null;
+  foreach ( $storage_areas as $area ) {
+    $storage_paths[$area->Path()] = $area;
+  }
+  if ( ! isset($storage_paths[ZM_DIR_EVENTS]) ) {
     array_push( $storage_areas, new Storage() );
+  }
   $func =  function($S){ return $S->Name() . ': ' . $S->disk_usage_percent().'%'; };
-
   echo implode( ', ', array_map ( $func, $storage_areas ) );
   echo ' ' . ZM_PATH_MAP .': '. getDiskPercent(ZM_PATH_MAP).'%';
 ?></li>
@@ -276,6 +283,6 @@ if ( canView( 'Stream' ) && $cycleCount > 1 ) {
 
 </div> <!-- End .navbar .navbar-default -->
 <?php
-return( ob_get_clean() );
-}
+  return( ob_get_clean() );
+} // end function getNavBarHTML()
 ?>

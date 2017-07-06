@@ -14,7 +14,7 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 // 
 
 #include "zm_rtp_source.h"
@@ -312,9 +312,10 @@ bool RtpSource::handlePacket( const unsigned char *packet, size_t packetLen )
               extraHeader = 2;
               break;
             }
-          default: {
-                     Debug(3, "Unhandled nalType %d", nalType );
-                   }
+          default: 
+            {
+              Debug(3, "Unhandled nalType %d", nalType );
+            }
         }
 
         // Append NAL frame start code
@@ -332,7 +333,7 @@ bool RtpSource::handlePacket( const unsigned char *packet, size_t packetLen )
     {
       if ( mFrameGood )
       {
-        Debug( 2, "Got new frame %d, %d bytes", mFrameCount, mFrame.size() );
+        Debug( 3, "Got new frame %d, %d bytes", mFrameCount, mFrame.size() );
 
         mFrameProcessed.setValueImmediate( false );
         mFrameReady.updateValueSignal( true );
