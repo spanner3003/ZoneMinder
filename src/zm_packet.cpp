@@ -42,6 +42,8 @@ ZMPacket::ZMPacket( Image *i ) {
 }
 
 ZMPacket::ZMPacket( AVPacket *p ) {
+  image = NULL;
+  frame = NULL;
   av_init_packet( &packet );
   set_packet( p );
   keyframe = p->flags & AV_PKT_FLAG_KEY;
@@ -63,6 +65,7 @@ ZMPacket::ZMPacket( AVPacket *p, AVFrame *f, Image *i ) {
 ZMPacket::~ZMPacket() {
   zm_av_packet_unref( &packet );
   if ( frame ) {
+    Debug(2,"Freeing frame");
     av_frame_free( &frame );
   }
   image = NULL;

@@ -46,8 +46,6 @@ class FfmpegCamera : public Camera {
 
 #if HAVE_LIBAVFORMAT
     AVFormatContext     *mFormatContext;
-    int                 mVideoStreamId;
-    int                 mAudioStreamId;
     AVCodec             *mVideoCodec;
     AVCodec             *mAudioCodec;
     AVFrame             *mRawFrame; 

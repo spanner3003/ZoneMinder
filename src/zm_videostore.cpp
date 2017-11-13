@@ -50,14 +50,11 @@ VideoStore::VideoStore(
 
   Info("Opening video storage stream %s format: %s", filename, format);
 
-  ret = avformat_alloc_output_context2(&oc, NULL, NULL, filename);
-  if ( ret < 0 ) {
+  if ( (ret = avformat_alloc_output_context2(&oc, NULL, NULL, filename)) < 0 ) {
     Warning(
         "Could not create video storage stream %s as no out ctx"
         " could be assigned based on filename: %s",
         filename, av_make_error_string(ret).c_str());
-  } else {
-    Debug(4, "Success allocating out format ctx");
   }
 
   // Couldn't deduce format from filename, trying from format name
@@ -87,6 +84,8 @@ VideoStore::VideoStore(
     video_in_stream_index = video_in_stream->index;
 #if LIBAVCODEC_VERSION_CHECK(57, 64, 0, 64, 0)
     video_in_ctx = avcodec_alloc_context3(NULL);
+    video_in_ctx->codec_id = video_in_stream->codecpar->codec_id;
+    Debug(2,"CodecIds: (%d) (%d)", video_in_stream->codecpar->codec_id,  video_in_ctx->codec_id);
     avcodec_parameters_to_context(video_in_ctx,
         video_in_stream->codecpar);
     zm_dump_codecpar( video_in_stream->codecpar );
@@ -103,24 +102,25 @@ VideoStore::VideoStore(
 
   // Copy params from instream to ctx
   if ( video_in_stream && ( video_in_ctx->codec_id == AV_CODEC_ID_H264 ) ) {
+    video_out_ctx = avcodec_alloc_context3(NULL);
 #if LIBAVCODEC_VERSION_CHECK(57, 64, 0, 64, 0)
     ret = avcodec_parameters_to_context(video_out_ctx,
         video_in_stream->codecpar);
     if ( ret < 0 ) {
       Error("Could not initialize ctx parameteres");
       return;
-    } else {
-      Debug(2, "Going to dump the outctx");
-      zm_dump_codec(video_out_ctx);
     }
 #else
-    video_out_ctx = avcodec_alloc_context3(NULL);
     avcodec_copy_context( video_out_ctx, video_in_ctx );
 #endif
     // Same codec, just copy the packets, otherwise we have to decode/encode
+    video_out_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
+    video_out_ctx->codec_id =  video_in_ctx->codec_id;
     video_out_codec = (AVCodec *)video_in_ctx->codec;
-    video_out_ctx->time_base = video_in_ctx->time_base;
-    video_out_stream->time_base = video_in_stream->time_base;
+    //video_out_ctx->time_base = video_in_ctx->time_base;
+    video_out_ctx->time_base = (AVRational){1, 1000000}; // microseconds as base frame rate
+    video_out_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
+    zm_dump_codec(video_out_ctx);
   } else {
 
     /** Create a new frame to store the */
@@ -158,13 +158,6 @@ VideoStore::VideoStore(
     video_out_ctx->qmax = 51;
     video_out_ctx->qcompress = 0.6;
 
-  if (oc->oformat->flags & AVFMT_GLOBALHEADER) {
-#if LIBAVCODEC_VERSION_CHECK(56, 35, 0, 64, 0)
-    video_out_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-#else
-    video_out_ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
-#endif
-  }
 
     AVDictionary *opts = 0;
     std::string Options = monitor->GetEncoderOptions();
@@ -214,6 +207,13 @@ VideoStore::VideoStore(
         video_out_ctx->height
         );
   } // end if copying or trasncoding
+    if ( oc->oformat->flags & AVFMT_GLOBALHEADER ) {
+#if LIBAVCODEC_VERSION_CHECK(56, 35, 0, 64, 0)
+      video_out_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+#else
+      video_out_ctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+#endif
+    }
 
   if ( !video_out_ctx->codec_tag ) {
     video_out_ctx->codec_tag =
@@ -235,22 +235,15 @@ VideoStore::VideoStore(
     return;
   }
   zm_dump_codecpar(video_out_stream->codecpar);
-zm_dump_codec(video_out_ctx);
 #else
 avcodec_copy_context( video_out_stream->codec, video_out_ctx );
 Debug(2, "%dx%d", video_out_stream->codec->width, video_out_stream->codec->height );
-zm_dump_codec(video_out_ctx);
-zm_dump_codec(video_out_stream->codec);
 #endif
 video_out_stream->time_base.num = video_out_ctx->time_base.num;
 video_out_stream->time_base.den = video_out_ctx->time_base.den;
-
-  Debug(3,
-        "Time bases: VIDEO out stream: (%d/%d) out codec (%d/%d)",
-        video_out_stream->time_base.num,
-        video_out_stream->time_base.den,
-        video_out_ctx->time_base.num,
-        video_out_ctx->time_base.den);
+video_out_stream->codecpar->format = AV_PIX_FMT_YUV420P;
+zm_dump_codec(video_out_ctx);
+zm_dump_codec(video_out_stream->codec);
 
   Monitor::Orientation orientation = monitor->getOrientation();
   Debug(3, "Have orientation");
@@ -278,7 +271,7 @@ video_out_stream->time_base.den = video_out_ctx->time_base.den;
 #ifdef HAVE_LIBAVRESAMPLE
   resample_ctx = NULL;
 #endif
-
+  audio_in_stream_index = -1;
   if ( audio_in_stream ) {
     audio_in_stream_index = audio_in_stream->index;
     Debug(3, "Have audio stream");
@@ -531,7 +524,7 @@ Debug(3, "dts:%d, pts:%d", pkt.dts, pkt.pts );
   av_interleaved_write_frame(oc, NULL);
 
   /* Write the trailer before close */
-  if (int rc = av_write_trailer(oc)) {
+  if ( int rc = av_write_trailer(oc) ) {
     Error("Error writing trailer %s", av_err2str(rc));
   } else {
     Debug(3, "Sucess Writing trailer");
@@ -810,6 +803,7 @@ int VideoStore::writeVideoFramePacket( ZMPacket * zm_packet ) {
   av_init_packet(&opkt);
   frame_count += 1;
 
+  Debug(2," video_out_ctx->codec_id(%d) ?= video_in_ctx->codec_id(%d)", video_out_ctx->codec_id,  video_in_ctx->codec_id );
   // if we have to transcode
   if ( video_out_ctx->codec_id != video_in_ctx->codec_id ) {
     Debug(3, "Have encoding video frame count (%d)", frame_count);
@@ -935,12 +929,20 @@ int VideoStore::writeVideoFramePacket( ZMPacket * zm_packet ) {
 #endif
 
   } else {
+    if ( ! video_last_pts ) {
+      video_last_pts = zm_packet->timestamp.tv_sec*1000000 + zm_packet->timestamp.tv_usec;
+      opkt.pts = opkt.dts = 0;
+    } else {
+      opkt.pts = opkt.dts = ( zm_packet->timestamp.tv_sec*1000000 + zm_packet->timestamp.tv_usec ) - video_last_pts;
+    }
     AVPacket *ipkt = &zm_packet->packet;
     Debug(3, "Doing passthrough, just copy packet");
     // Just copy it because the codec is the same
     opkt.data = ipkt->data;
     opkt.size = ipkt->size;
     opkt.flags = ipkt->flags;
+    //opkt.dts = av_rescale_q( ipkt->dts, video_in_stream->time_base, video_out_stream->time_base );
+    //opkt.pts = av_rescale_q( ipkt->dts, video_in_stream->time_base, video_out_stream->time_base );
   }
 
   //opkt.dts = opkt.pts = ( zm_packet->timestamp.tv_sec*1000000 + zm_packet->timestamp.tv_usec ) - video_last_pts;
@@ -1257,6 +1259,7 @@ int VideoStore::write_packets( zm_packetqueue &queue ) {
   unsigned int packet_count = 0;
   ZMPacket *queued_packet;
 
+  ZMPacket *previous_packet = NULL;
   while ( ( queued_packet = queue.popPacket() ) ) {
     AVPacket *avp = queued_packet->av_packet();
 
@@ -1267,8 +1270,13 @@ int VideoStore::write_packets( zm_packetqueue &queue ) {
     if ( ret < 0 ) {
       //Less than zero and we skipped a frame
     }
-    delete queued_packet;
+    if ( previous_packet )
+      delete previous_packet;
+    previous_packet = queued_packet;
+
   } // end while packets in the packetqueue
+    if ( previous_packet )
+      delete previous_packet;
   Debug(2, "Wrote %d queued packets", packet_count );
   return packet_count;
 } // end int VideoStore::write_packets( PacketQueue &queue ) {
