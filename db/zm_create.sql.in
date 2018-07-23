@@ -517,6 +517,8 @@ CREATE TABLE `Monitors` (
   `ArchivedEvents` int(10) default NULL,
   `ArchivedEventDiskSpace` bigint default NULL,
   `ZoneCount` TINYINT NOT NULL DEFAULT 0,
+  `Plugins` varchar(255),
+  `DoNativeMotionDetection` BOOLEAN NOT NULL default 'true',
   PRIMARY KEY (`Id`)
 ) ENGINE=@ZM_MYSQL_ENGINE@;
 
