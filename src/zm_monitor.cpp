@@ -476,7 +476,29 @@ Monitor::Monitor(
     shared_data->last_read_time = 0;
     shared_data->alarm_x = -1;
     shared_data->alarm_y = -1;
-  }
+
+    if ( config.load_plugins ) {
+      plugin_names = split(plugins, ';');
+      Info("Load plugins from the directory %s ... ", config.path_plugins);
+      std::string sPluginExt = std::string(config.plugin_extension);
+      ThePluginManager.setPluginExt(sPluginExt);
+      for (std::vector<std::string>::iterator it = plugin_names.begin() ; it < plugin_names.end(); ++it ) {
+        std::string full_plugin_path = join_paths(config.path_plugins, *it + config.plugin_extension);
+        Info("Plugin path %s", full_plugin_path.c_str());
+        ThePluginManager.loadPlugin(full_plugin_path);
+      }
+
+//            int count_plugins = ThePluginManager.findPlugins(config.path_plugins);
+//            Info("Number of found plugins is %d", count_plugins);
+//            if (count_plugins > 0)
+//            {
+      std::string sPluginsConfig = std::string(config.plugins_config_path);
+      Info("Configure plugins with \'%s\' config file.", config.plugins_config_path);
+      ThePluginManager.configurePlugins(sPluginsConfig);
+//            }
+
+    } // end if config.load_plugins
+  } // end if purpose
 
   if ( ( ! mem_ptr ) || ! shared_data->valid ) {
     if ( purpose != QUERY ) {
@@ -619,6 +641,7 @@ bool Monitor::connect() {
       pre_event_buffer[i].timestamp = new struct timeval;
       pre_event_buffer[i].image = new Image( width, height, camera->Colours(), camera->SubpixelOrder());
     }
+
   }
 Debug(3, "Success connecting");
   return true;
@@ -1396,6 +1419,8 @@ bool Monitor::Analyse() {
           Event::StringSet zoneSet;
           int motion_score = last_motion_score;
           if ( !(image_count % (motion_frame_skip+1) ) ) {
+
+            if ( do_native_detection ) {
             // Get new score.
             motion_score = DetectMotion(*snap_image, zoneSet);
 
@@ -1403,6 +1428,18 @@ bool Monitor::Analyse() {
                 "After motion detection, last_motion_score(%d), new motion score(%d)",
                 last_motion_score, motion_score
                 );
+            if ( config.load_plugins ) {
+              std::string det_cause; // detection cause to fill in plugin's detectors
+              score += ThePluginManager.getImageAnalyser().DoDetection(*snap_image, zones, n_zones, noteSetMap, det_cause);
+              if ( !event ) {
+                if ( det_cause.length() ) {
+                  if (cause.length())
+                    cause += ", ";
+                  cause +=  det_cause;
+                }
+              }
+            } // end if config.load_plugins
+
             // Why are we updating the last_motion_score too?
             last_motion_score = motion_score;
           }
