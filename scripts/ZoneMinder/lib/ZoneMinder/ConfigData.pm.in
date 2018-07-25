@@ -3925,6 +3925,7 @@ our @options = (
     category      => 'plugins',
     Readonly      => 0,
     requires      => '',
+    type          => $types{string},
   },
   {
     name          => 'ZM_PLUGIN_EXTENSION',
@@ -3938,6 +3939,7 @@ our @options = (
     category      => 'plugins',
     readonly      => 0,
     requires      => '',
+    type          => $types{string},
   },
   {
     name          => 'ZM_PLUGINS_CONFIG_FILE',
@@ -3951,6 +3953,7 @@ our @options = (
     category      => 'plugins',
     readonly      => 0,
     requires      => '',
+    type          => $types{string},
   },
 );
 
