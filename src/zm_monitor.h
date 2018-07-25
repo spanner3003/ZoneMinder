@@ -30,12 +30,14 @@
 #include "zm_rgb.h"
 #include "zm_zone.h"
 #include "zm_event.h"
+
 class Monitor;
 #include "zm_group.h"
 #include "zm_camera.h"
 #include "zm_storage.h"
 #include "zm_utils.h"
 
+#include "zm_plugin_manager.h"
 #include "zm_image_analyser.h"
 
 #include <sys/time.h>
@@ -346,6 +348,10 @@ protected:
 
   std::vector<Group *> groups;
 
+  PluginManager ThePluginManager;
+  std::vector<std::string> plugins;
+  bool do_native_motion_detection;
+
 public:
   explicit Monitor( int p_id );
 
@@ -392,7 +398,9 @@ public:
     bool p_embed_exif,
     Purpose p_purpose,
     int p_n_zones=0,
-    Zone *p_zones[]=0
+    Zone *p_zones[]=0,
+    std::vector<std::string>  p_plugins,
+    bool p_do_native_motion_detection
   );
   ~Monitor();
 

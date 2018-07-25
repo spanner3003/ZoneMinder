@@ -78,7 +78,9 @@ std::string load_monitor_sql =
 "EventPrefix, LabelFormat, LabelX, LabelY, LabelSize,"
 "ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, StreamReplayBuffer, AlarmFrameCount, "
 "SectionLength, FrameSkip, MotionFrameSkip, "
-"FPSReportInterval, RefBlendPerc, AlarmRefBlendPerc, TrackMotion, Exif, SignalCheckPoints, SignalCheckColour FROM Monitors";
+"FPSReportInterval, RefBlendPerc, AlarmRefBlendPerc, TrackMotion, Exif, SignalCheckPoints, SignalCheckColour, "
+"Plugins, DoNativeMotionDetection "
+"FROM Monitors";
 
 std::string CameraType_Strings[] = {
   "Local",
@@ -310,7 +312,9 @@ Monitor::Monitor(
   bool p_embed_exif,
   Purpose p_purpose,
   int p_n_zones,
-  Zone *p_zones[]
+  Zone *p_zones[],
+  std::vector<std::string> p_plugins,
+  bool p_do_native_motion_detection
 ) : id( p_id ),
   server_id( p_server_id ),
   storage_id( p_storage_id ),
@@ -356,7 +360,9 @@ Monitor::Monitor(
   timestamps( 0 ),
   images( 0 ),
   privacy_bitmask( NULL ),
-  event_delete_thread(NULL)
+  event_delete_thread(NULL),
+  plugins(p_plugins),
+  do_native_motion_detection(p_do_native_motion_detection)
 {
   strncpy( name, p_name, sizeof(name)-1 );
 
@@ -477,12 +483,11 @@ Monitor::Monitor(
     shared_data->alarm_x = -1;
     shared_data->alarm_y = -1;
 
-    if ( config.load_plugins ) {
-      plugin_names = split(plugins, ';');
+    if ( plugins.size() ) {
       Info("Load plugins from the directory %s ... ", config.path_plugins);
       std::string sPluginExt = std::string(config.plugin_extension);
       ThePluginManager.setPluginExt(sPluginExt);
-      for (std::vector<std::string>::iterator it = plugin_names.begin() ; it < plugin_names.end(); ++it ) {
+      for (std::vector<std::string>::iterator it = plugins.begin() ; it < plugins.end(); ++it ) {
         std::string full_plugin_path = join_paths(config.path_plugins, *it + config.plugin_extension);
         Info("Plugin path %s", full_plugin_path.c_str());
         ThePluginManager.loadPlugin(full_plugin_path);
@@ -492,12 +497,12 @@ Monitor::Monitor(
 //            Info("Number of found plugins is %d", count_plugins);
 //            if (count_plugins > 0)
 //            {
-      std::string sPluginsConfig = std::string(config.plugins_config_path);
-      Info("Configure plugins with \'%s\' config file.", config.plugins_config_path);
+      std::string sPluginsConfig = std::string(config.plugins_config_file);
+      Info("Configure plugins with \'%s\' config file.", config.plugins_config_file);
       ThePluginManager.configurePlugins(sPluginsConfig);
 //            }
 
-    } // end if config.load_plugins
+    } // end if plugins
   } // end if purpose
 
   if ( ( ! mem_ptr ) || ! shared_data->valid ) {
@@ -1420,15 +1425,17 @@ bool Monitor::Analyse() {
           int motion_score = last_motion_score;
           if ( !(image_count % (motion_frame_skip+1) ) ) {
 
-            if ( do_native_detection ) {
-            // Get new score.
-            motion_score = DetectMotion(*snap_image, zoneSet);
+            if ( do_native_motion_detection ) {
+              // Get new score.
+              motion_score = DetectMotion(*snap_image, zoneSet);
 
-            Debug(3,
-                "After motion detection, last_motion_score(%d), new motion score(%d)",
-                last_motion_score, motion_score
-                );
-            if ( config.load_plugins ) {
+              Debug(3,
+                  "After motion detection, last_motion_score(%d), new motion score(%d)",
+                  last_motion_score, motion_score
+                  );
+            }
+
+            if ( plugins.size() ) {
               std::string det_cause; // detection cause to fill in plugin's detectors
               score += ThePluginManager.getImageAnalyser().DoDetection(*snap_image, zones, n_zones, noteSetMap, det_cause);
               if ( !event ) {
@@ -1438,7 +1445,7 @@ bool Monitor::Analyse() {
                   cause +=  det_cause;
                 }
               }
-            } // end if config.load_plugins
+            } // end if plugins.size
 
             // Why are we updating the last_motion_score too?
             last_motion_score = motion_score;
@@ -2057,7 +2064,9 @@ int Monitor::LoadFfmpegMonitors(const char *file, Monitor **&monitors, Purpose p
  "EventPrefix, LabelFormat, LabelX, LabelY, LabelSize,"
  "ImageBufferCount, WarmupCount, PreEventCount, PostEventCount, StreamReplayBuffer, AlarmFrameCount, "
  "SectionLength, FrameSkip, MotionFrameSkip, "
- "FPSReportInterval, RefBlendPerc, AlarmRefBlendPerc, TrackMotion, Exif, SignalCheckColour FROM Monitors";
+ "FPSReportInterval, RefBlendPerc, AlarmRefBlendPerc, TrackMotion, Exif, SignalCheckColour,"
+ "Plugins, DoNativeMotionDetection "
+ "FROM Monitors";
 */
 
 Monitor *Monitor::Load(MYSQL_ROW dbrow, bool load_zones, Purpose purpose) {
@@ -2146,6 +2155,10 @@ Monitor *Monitor::Load(MYSQL_ROW dbrow, bool load_zones, Purpose purpose) {
   int signal_check_points = dbrow[col] ? atoi(dbrow[col]) : 0;col++;
   int signal_check_color = strtol(dbrow[col][0] == '#' ? dbrow[col]+1 : dbrow[col], 0, 16); col++;
   bool embed_exif = (*dbrow[col] != '0'); col++;
+  std::string plugins_string = dbrow[col] ? dbrow[col] : ""; col++;
+  std::vector<std::string> plugins = split(plugins_string ,';');
+  std::string sDoNativeMotDet = dbrow[col]; col++;
+  bool do_native_motion_detection = !sDoNativeMotDet.compare("yes") ? true : false;
 
   Camera *camera = 0;
   if ( type == "Local" ) {
@@ -2348,7 +2361,9 @@ Monitor *Monitor::Load(MYSQL_ROW dbrow, bool load_zones, Purpose purpose) {
       embed_exif,
       purpose,
       0,
-      0
+      0,
+      plugins,
+      do_native_motion_detection
     );
   camera->setMonitor(monitor);
   Zone **zones = 0;
