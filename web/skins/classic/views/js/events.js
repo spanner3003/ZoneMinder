@@ -97,8 +97,9 @@ function downloadVideo( element, name ) {
   createPopup( '?view=download&'+eids.join( '&' ), 'zmDownload', 'download' );
 }
 
-function exportEvents( element, name ) {
-  var form = element.form;
+function exportEvents(element, name) {
+  var form = $j(element.form);
+  if ( 0 ) {
   var eids = new Array();
   for (var i = 0; i < form.elements.length; i++) {
     if (form.elements[i].name.indexOf(name) == 0) {
@@ -108,6 +109,10 @@ function exportEvents( element, name ) {
     }
   }
   createPopup( '?view=export&'+eids.join( '&' ), 'zmExport', 'export' );
+  }
+  form.attr('action', '?view=export');
+  form[0].elements['view'].value='export';
+  form.submit();
 }
 
 function viewEvents( element, name ) {

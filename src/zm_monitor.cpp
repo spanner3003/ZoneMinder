@@ -644,9 +644,13 @@ bool Monitor::connect() {
     pre_event_buffer = new Snapshot[pre_event_buffer_count];
     for ( int i = 0; i < pre_event_buffer_count; i++ ) {
       pre_event_buffer[i].timestamp = new struct timeval;
+      *pre_event_buffer[i].timestamp = {0,0};
       pre_event_buffer[i].image = new Image( width, height, camera->Colours(), camera->SubpixelOrder());
     }
 
+    timestamps = new struct timeval *[pre_event_count];
+    images = new Image *[pre_event_count];
+    last_signal = shared_data->signal;
   }
 Debug(3, "Success connecting");
   return true;
@@ -1289,6 +1293,7 @@ bool Monitor::Analyse() {
 
   int index;
   if ( adaptive_skip ) {
+    // I think the idea behind adaptive skip is if we are falling behind, then skip a bunch, but not all
     int read_margin = shared_data->last_read_index - shared_data->last_write_index;
     if ( read_margin < 0 ) read_margin += image_buffer_count;
 
@@ -1302,7 +1307,10 @@ bool Monitor::Analyse() {
     int pending_frames = shared_data->last_write_index - shared_data->last_read_index;
     if ( pending_frames < 0 ) pending_frames += image_buffer_count;
 
-    Debug( 4, "ReadIndex:%d, WriteIndex: %d, PendingFrames = %d, ReadMargin = %d, Step = %d", shared_data->last_read_index, shared_data->last_write_index, pending_frames, read_margin, step );
+    Debug(4,
+        "ReadIndex:%d, WriteIndex: %d, PendingFrames = %d, ReadMargin = %d, Step = %d",
+        shared_data->last_read_index, shared_data->last_write_index, pending_frames, read_margin, step
+        );
     if ( step <= pending_frames ) {
       index = (shared_data->last_read_index+step)%image_buffer_count;
     } else {
@@ -1322,17 +1330,17 @@ bool Monitor::Analyse() {
   if ( shared_data->action ) {
     // Can there be more than 1 bit set in the action?  Shouldn't these be elseifs?
     if ( shared_data->action & RELOAD ) {
-      Info( "Received reload indication at count %d", image_count );
+      Info("Received reload indication at count %d", image_count);
       shared_data->action &= ~RELOAD;
       Reload();
     }
     if ( shared_data->action & SUSPEND ) {
       if ( Active() ) {
-        Info( "Received suspend indication at count %d", image_count );
+        Info("Received suspend indication at count %d", image_count);
         shared_data->active = false;
         //closeEvent();
       } else {
-        Info( "Received suspend indication at count %d, but wasn't active", image_count );
+        Info("Received suspend indication at count %d, but wasn't active", image_count);
       }
       if ( config.max_suspend_time ) {
         auto_resume_time = now.tv_sec + config.max_suspend_time;
@@ -1341,7 +1349,7 @@ bool Monitor::Analyse() {
     }
     if ( shared_data->action & RESUME ) {
       if ( Enabled() && !Active() ) {
-        Info( "Received resume indication at count %d", image_count );
+        Info("Received resume indication at count %d", image_count);
         shared_data->active = true;
         ref_image = *snap_image;
         ready_count = image_count+(warmup_count/2);
@@ -1352,24 +1360,14 @@ bool Monitor::Analyse() {
   } // end if shared_data->action
 
   if ( auto_resume_time && (now.tv_sec >= auto_resume_time) ) {
-    Info( "Auto resuming at count %d", image_count );
+    Info("Auto resuming at count %d", image_count);
     shared_data->active = true;
     ref_image = *snap_image;
     ready_count = image_count+(warmup_count/2);
     auto_resume_time = 0;
   }
 
-  static bool static_undef = true;
   static int last_section_mod = 0;
-  static bool last_signal;
-
-  if ( static_undef ) {
-// Sure would be nice to be able to assume that these were already initialized.  It's just 1 compare/branch, but really not neccessary.
-    static_undef = false;
-    timestamps = new struct timeval *[pre_event_count];
-    images = new Image *[pre_event_count];
-    last_signal = shared_data->signal;
-  }
 
   if ( Enabled() ) {
     bool signal = shared_data->signal;
@@ -1422,8 +1420,8 @@ bool Monitor::Analyse() {
 
         } else if ( signal && Active() && (function == MODECT || function == MOCORD) ) {
           Event::StringSet zoneSet;
-          int motion_score = last_motion_score;
           if ( !(image_count % (motion_frame_skip+1) ) ) {
+<<<<<<< HEAD
 
             if ( do_native_motion_detection ) {
               // Get new score.
@@ -1449,16 +1447,25 @@ bool Monitor::Analyse() {
 
             // Why are we updating the last_motion_score too?
             last_motion_score = motion_score;
+=======
+            // Get new score.
+            int new_motion_score = DetectMotion(*snap_image, zoneSet);
+
+            Debug(3,
+                "After motion detection, last_motion_score(%d), new motion score(%d)",
+                last_motion_score, new_motion_score
+                );
+            last_motion_score = new_motion_score;
+>>>>>>> storageareas
           }
-          //int motion_score = DetectBlack( *snap_image, zoneSet );
-          if ( motion_score ) {
+          if ( last_motion_score ) {
             if ( !event ) {
-              score += motion_score;
+              score += last_motion_score;
               if ( cause.length() )
                 cause += ", ";
               cause += MOTION_CAUSE;
             } else {
-              score += motion_score;
+              score += last_motion_score;
             }
             noteSetMap[MOTION_CAUSE] = zoneSet;
           } // end if motion_score
@@ -1480,7 +1487,7 @@ bool Monitor::Analyse() {
                     first_link = false;
                   }
                 }
-                noteSet.insert( linked_monitors[i]->Name() );
+                noteSet.insert(linked_monitors[i]->Name());
                 score += 50;
               }
             } else {
@@ -1494,14 +1501,15 @@ bool Monitor::Analyse() {
         //TODO: What happens is the event closes and sets recording to false then recording to true again so quickly that our capture daemon never picks it up. Maybe need a refresh flag?
         if ( (!signal_change && signal) && (function == RECORD || function == MOCORD) ) {
           if ( event ) {
-            //TODO: We shouldn't have to do this every time. Not sure why it clears itself if this isn't here??
-            //snprintf(video_store_data->event_file, sizeof(video_store_data->event_file), "%s", event->getEventFile());
-              Debug( 3, "Detected new event at (%d.%d)", timestamp->tv_sec,timestamp->tv_usec );
+            Debug(3, "Detected new event at (%d.%d)", timestamp->tv_sec, timestamp->tv_usec);
 
             if ( section_length && ( timestamp->tv_sec >= section_length ) ) {
               // TODO: Wouldn't this be clearer if we just did something like if now - event->start > section_length ?
               int section_mod = timestamp->tv_sec % section_length;
-              Debug( 3, "Section length (%d) Last Section Mod(%d), new section mod(%d)", section_length, last_section_mod, section_mod );
+              Debug(3,
+                  "Section length (%d) Last Section Mod(%d), new section mod(%d)",
+                  section_length, last_section_mod, section_mod
+                  );
               if ( section_mod < last_section_mod ) {
                 //if ( state == IDLE || state == TAPE || event_close_mode == CLOSE_TIME ) {
                   //if ( state == TAPE ) {
@@ -1524,7 +1532,7 @@ bool Monitor::Analyse() {
           if ( ! event ) {
 
             // Create event
-            event = new Event( this, *timestamp, "Continuous", noteSetMap, videoRecording );
+            event = new Event(this, *timestamp, "Continuous", noteSetMap, videoRecording);
             shared_data->last_event = event->Id();
             //set up video store data
             snprintf(video_store_data->event_file, sizeof(video_store_data->event_file), "%s", event->getEventFile());
@@ -1598,6 +1606,10 @@ bool Monitor::Analyse() {
                 int pre_index;
                 int pre_event_images = pre_event_count;
 
+if ( event ) {
+// SHouldn't be able to happen because 
+Error("Creating new event when one exists");
+}
                 if ( analysis_fps && pre_event_count ) {
                   // If analysis fps is set,
                   // compute the index for pre event images in the dedicated buffer
