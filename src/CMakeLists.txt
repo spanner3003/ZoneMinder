@@ -14,10 +14,10 @@ add_executable(zma zma.cpp)
 add_executable(zmu zmu.cpp)
 add_executable(zms zms.cpp)
 
-target_link_libraries(zmc zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS})
-target_link_libraries(zma zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS})
-target_link_libraries(zmu zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS})
-target_link_libraries(zms zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS})
+target_link_libraries(zmc zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS} ${CMAKE_DL_LIBS})
+target_link_libraries(zma zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS} ${CMAKE_DL_LIBS})
+target_link_libraries(zmu zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS} ${CMAKE_DL_LIBS})
+target_link_libraries(zms zm ${ZM_EXTRA_LIBS} ${ZM_BIN_LIBS} ${CMAKE_DL_LIBS})
 
 # Generate man files for the binaries destined for the bin folder
 FOREACH(CBINARY zma zmc zmu)
