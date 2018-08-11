@@ -37,7 +37,7 @@ class ImageAnalyser {
     ImageAnalyser& operator=(const ImageAnalyser& source);
 
     //! Adds new plugin's detector to the list of detectors.
-    void addDetector(std::auto_ptr<Detector> Det) {
+    void addDetector(std::unique_ptr<Detector> Det) {
       m_Detectors.push_back(Det.release());
     }
     
