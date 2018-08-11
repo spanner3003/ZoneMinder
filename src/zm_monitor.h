@@ -397,8 +397,8 @@ public:
     Rgb p_signal_check_colour,
     bool p_embed_exif,
     Purpose p_purpose,
-    int p_n_zones=0,
-    Zone *p_zones[]=0,
+    int p_n_zones,
+    Zone *p_zones[],
     std::vector<std::string>  p_plugins,
     bool p_do_native_motion_detection
   );
