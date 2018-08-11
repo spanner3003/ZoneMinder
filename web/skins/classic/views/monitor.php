@@ -126,6 +126,8 @@ if ( ! $monitor ) {
           'ServerId'  =>  'auto',
           'StorageId'  => '1',
           'Refresh' => '',
+          'DoNativeMotionDetection' => 'yes',
+          'Plugins' => '',
           ) );
     } # end if $_REQUEST['dupID']
 } # end if $_REQUEST['mid']
@@ -546,6 +548,9 @@ echo '<input type="hidden" name="newMonitor[GroupIds][]" value="'.$group_id.'"/>
       <input type="hidden" name="newMonitor[AnalysisFPSLimit]" value="<?php echo validHtmlStr($monitor->AnalysisFPSLimit()) ?>"/>
       <input type="hidden" name="newMonitor[MaxFPS]" value="<?php echo validHtmlStr($monitor->MaxFPS()) ?>"/>
       <input type="hidden" name="newMonitor[AlarmMaxFPS]" value="<?php echo validHtmlStr($monitor->AlarmMaxFPS()) ?>"/>
+      <input type="hidden" name="newMonitor[DoNativeMotionDetection]" value="<?= validHtmlStr($monitor->DoNativeMotionDetection()) ?>"/>
+      <input type="hidden" name="newMonitor[Plugins]" value="<?= validHtmlStr($monitor->Plugins()) ?>"/>
+
 <?php
   if ( null !== $monitor->Triggers() ) {
     foreach( explode( ',', $monitor->Triggers() ) as $newTrigger ) {
@@ -780,6 +785,15 @@ echo htmlOptions(Group::get_dropdown_options( ), $monitor->GroupIds() );
 <?php
       }
 ?>
+            <tr><td><?php echo translate('Plugins') ?></td><td><input type="text" name="newMonitor[Plugins]" value="<?php echo validHtmlStr($monitor->Plugins()) ?>"/></td></tr>
+            <tr><td><?php echo translate('DoNativeMotionDetection') ?></td><td>
+              <input type="radio" name="newMonitor[DoNativeMotionDetection]" value="0"<?php echo $monitor->DoNativeMotionDetection() ? '' : ' checked="checked"' ?>/>
+              <input type="radio" name="newMonitor[DoNativeMotionDetection]" value="1"/>
+              <label for="newMonitors[DoNativeMotionDetection]1"><?php echo translate('Yes') ?></label>
+              <input type="radio" name="newMonitor[DoNativeMotionDetection]" value="0"<?php echo $monitor->DoNativeMotionDetection() ? ' checked="checked"' : '' ?>/>
+              <label for="newMonitors[DoNativeMotionDetection]0"><?php echo translate('No') ?></label>
+            </td></tr>
+
             <tr><td><?php echo translate('Triggers') ?></td><td>
 <?php
       $optTriggers = getSetValues( 'Monitors', 'Triggers' );
