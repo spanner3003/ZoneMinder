@@ -12,9 +12,11 @@ for CMD in sshfs rsync find fusermount mkdir; do
   fi
 done
 
-# We only want to deploy packages during cron events
 # See https://docs.travis-ci.com/user/cron-jobs/
-if [ "${TRAVIS_EVENT_TYPE}" == "cron" ]; then
+#
+# TO-DO: Deploy after ever commit for rpm builds after pacakge signing & repo creation is containerized
+#
+if [ "${TRAVIS_EVENT_TYPE}" == "cron" ] || [ "${OS}" == "debian" ] || [ "${OS}" == "ubuntu" ]; then
 
     if [ "${OS}" == "debian" ] || [ "${OS}" == "ubuntu" ]; then
         targetfolder="debian/master/mini-dinstall/incoming"
@@ -26,24 +28,17 @@ if [ "${TRAVIS_EVENT_TYPE}" == "cron" ]; then
     echo "Target subfolder set to $targetfolder"
     echo
 
-    mkdir -p ./zmrepo
-    ssh_mntchk="$(sshfs zmrepo@zmrepo.zoneminder.com:./ ./zmrepo -o workaround=rename,reconnect)"
-
-    if [ -z "$ssh_mntchk" ]; then
+    echo "Running \$(rsync -v -e 'ssh -vvv' build/* zmrepo@zmrepo.zoneminder.com:${targetfolder}/ 2>&1)"
+    rsync -v -e 'ssh -vvv' build/* zmrepo@zmrepo.zoneminder.com:${targetfolder}/ 2>&1
+    result="$?"
+    if [ "$result" -eq 0 ]; then
+        echo 
+        echo "Files copied successfully."
         echo
-        echo "Remote filesystem mounted successfully."
-        echo "Begin transfering files..."
+    else 
         echo
-
-        # Don't keep packages older than 5 days
-        find ./zmrepo/$targetfolder/ -maxdepth 1 -type f -mtime +5 -delete
-        rsync -vzlh --ignore-errors build/* zmrepo/$targetfolder/
-        fusermount -zu zmrepo
-    else
-        echo
-        echo "ERROR: Attempt to mount zmrepo.zoneminder.com failed!"
-        echo "sshfs gave the following error message:"
-        echo \"$ssh_mntchk\"
+        echo "ERROR: Attempt to rsync to zmrepo.zoneminder.com failed!"
+        echo "The following error code was returned: $result."
         echo
         exit 99
     fi

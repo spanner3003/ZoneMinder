@@ -21,10 +21,15 @@
 #define ZM_FFMPEG_H
 #include <stdint.h>
 #include "zm.h"
-#include "zm_image.h"
 
-#ifdef __cplusplus
 extern "C" {
+
+#ifdef HAVE_LIBSWRESAMPLE
+  #include "libswresample/swresample.h"
+#else
+  #ifdef HAVE_LIBAVRESAMPLE
+    #include "libavresample/avresample.h"
+  #endif
 #endif
 
 // AVUTIL
@@ -34,6 +39,7 @@ extern "C" {
 #include <libavutil/base64.h>
 #include <libavutil/mathematics.h>
 #include <libavutil/avstring.h>
+#include "libavutil/audio_fifo.h"
 
 /* LIBAVUTIL_VERSION_CHECK checks for the right version of libav and FFmpeg
  * The original source is vlc (in modules/codec/avcodec/avcommon_compat.h)
@@ -202,35 +208,11 @@ extern "C" {
 
 /* A single function to initialize ffmpeg, to avoid multiple initializations */		
 void FFMPEGInit();
+void FFMPEGDeInit();
 
 #if HAVE_LIBAVUTIL
 enum _AVPIXELFORMAT GetFFMPEGPixelFormat(unsigned int p_colours, unsigned p_subpixelorder);
 #endif // HAVE_LIBAVUTIL
-
-
-/* SWScale wrapper class to make our life easier and reduce code reuse */
-#if HAVE_LIBSWSCALE && HAVE_LIBAVUTIL
-class SWScale {
-public:
-	SWScale();
-	~SWScale();
-	int SetDefaults(enum _AVPIXELFORMAT in_pf, enum _AVPIXELFORMAT out_pf, unsigned int width, unsigned int height);
-	int ConvertDefaults(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size);
-	int ConvertDefaults(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size);
-	int Convert(const Image* img, uint8_t* out_buffer, const size_t out_buffer_size, enum _AVPIXELFORMAT in_pf, enum _AVPIXELFORMAT out_pf, unsigned int width, unsigned int height);
-	int Convert(const uint8_t* in_buffer, const size_t in_buffer_size, uint8_t* out_buffer, const size_t out_buffer_size, enum _AVPIXELFORMAT in_pf, enum _AVPIXELFORMAT out_pf, unsigned int width, unsigned int height);
-
-protected:
-	bool gotdefaults;
-	struct SwsContext* swscale_ctx;
-	AVFrame* input_avframe;
-	AVFrame* output_avframe;
-	enum _AVPIXELFORMAT default_input_pf;
-	enum _AVPIXELFORMAT default_output_pf;
-	unsigned int default_width;
-	unsigned int default_height;
-};
-#endif // HAVE_LIBSWSCALE && HAVE_LIBAVUTIL
 
 #if !LIBAVCODEC_VERSION_CHECK(54, 25, 0, 51, 100)
 #define AV_CODEC_ID_NONE CODEC_ID_NONE
@@ -265,9 +247,8 @@ protected:
  */
 #ifdef  __cplusplus
 
-    inline static const std::string av_make_error_string(int errnum)
-    {
-        char errbuf[AV_ERROR_MAX_STRING_SIZE];
+    inline static const std::string av_make_error_string(int errnum) {
+        static char errbuf[AV_ERROR_MAX_STRING_SIZE];
 #if LIBAVUTIL_VERSION_CHECK(50, 13, 0, 13, 0)
         av_strerror(errnum, errbuf, AV_ERROR_MAX_STRING_SIZE);
 #else
@@ -323,17 +304,42 @@ static av_always_inline av_const int64_t av_clip64_c(int64_t a, int64_t amin, in
 #endif
 
 void zm_dump_stream_format(AVFormatContext *ic, int i, int index, int is_output);
-void zm_dump_codec ( const AVCodecContext *codec );
+void zm_dump_codec(const AVCodecContext *codec);
 #if LIBAVCODEC_VERSION_CHECK(57, 64, 0, 64, 0)
-void zm_dump_codecpar ( const AVCodecParameters *par );
+void zm_dump_codecpar(const AVCodecParameters *par);
 #endif
+#define zm_dump_frame(frame, text) Debug(1, "%s: format %d %s sample_rate %" PRIu32 " nb_samples %d channels %d" \
+      " duration %" PRId64 \
+      " layout %d pts %" PRId64, \
+      text, \
+      frame->format, \
+      av_get_sample_fmt_name((AVSampleFormat)frame->format), \
+      frame->sample_rate, \
+      frame->nb_samples, \
+      0, 0, \
+      frame->channel_layout, \
+      frame->pts \
+      );
+
+#define zm_dump_video_frame(frame,text) Debug(1, "%s: format %d %s %dx%d linesize:%dx%d pts: %" PRId64, \
+      text, \
+      frame->format, \
+      av_get_pix_fmt_name((AVPixelFormat)frame->format), \
+      frame->width, \
+      frame->height, \
+      frame->linesize[0], frame->linesize[1], \
+      frame->pts \
+      );
 
 #if LIBAVCODEC_VERSION_CHECK(56, 8, 0, 60, 100)
     #define zm_av_packet_unref( packet ) av_packet_unref( packet )
     #define zm_av_packet_ref( dst, src ) av_packet_ref( dst, src )
 #else
+    unsigned int zm_av_packet_ref( AVPacket *dst, AVPacket *src );
     #define zm_av_packet_unref( packet ) av_free_packet( packet )
-unsigned int zm_av_packet_ref( AVPacket *dst, AVPacket *src );
+    const char *avcodec_get_name(AVCodecID id);
+
+    void av_packet_rescale_ts(AVPacket *pkt, AVRational src_tb, AVRational dst_tb);
 #endif
 #if LIBAVCODEC_VERSION_CHECK(52, 23, 0, 23, 0)
       #define zm_avcodec_decode_video( context, rawFrame, frameComplete, packet ) avcodec_decode_video2( context, rawFrame, frameComplete, packet )
@@ -352,5 +358,48 @@ unsigned int zm_av_packet_ref( AVPacket *dst, AVPacket *src );
 #endif   
 
 int check_sample_fmt(AVCodec *codec, enum AVSampleFormat sample_fmt);
+
+bool is_video_stream(AVStream *);
+bool is_audio_stream(AVStream *);
+bool is_video_context(AVCodec *);
+bool is_audio_context(AVCodec *);
+
+int zm_receive_packet(AVCodecContext *context, AVPacket &packet);
+
+int zm_send_packet_receive_frame(AVCodecContext *context, AVFrame *frame, AVPacket &packet);
+int zm_send_frame_receive_packet(AVCodecContext *context, AVFrame *frame, AVPacket &packet);
+
+void dumpPacket(AVStream *, AVPacket *,const char *text="");
+void dumpPacket(AVPacket *,const char *text="");
+void zm_packet_copy_rescale_ts(const AVPacket *ipkt, AVPacket *opkt, const AVRational src_tb, const AVRational dst_tb);
+
+#if defined(HAVE_LIBSWRESAMPLE) || defined(HAVE_LIBAVRESAMPLE)
+int zm_resample_audio(
+#if defined(HAVE_LIBSWRESAMPLE)
+    SwrContext *resample_ctx,
+#else
+#if defined(HAVE_LIBAVRESAMPLE)
+    AVAudioResampleContext *resample_ctx,
+#endif
+#endif
+    AVFrame *in_frame,
+    AVFrame *out_frame
+    );
+int zm_resample_get_delay(
+#if defined(HAVE_LIBSWRESAMPLE)
+    SwrContext *resample_ctx,
+#else
+#if defined(HAVE_LIBAVRESAMPLE)
+    AVAudioResampleContext *resample_ctx,
+#endif
+#endif
+    int time_base
+    );
+
+#endif
+
+int zm_add_samples_to_fifo(AVAudioFifo *fifo, AVFrame *frame);
+int zm_get_samples_from_fifo(AVAudioFifo *fifo, AVFrame *frame);
+
 
 #endif // ZM_FFMPEG_H

@@ -30,22 +30,12 @@ use warnings;
 
 require ZoneMinder::Base;
 require ZoneMinder::Object;
+require ZoneMinder::Storage;
 require ZoneMinder::Server;
 
 #our @ISA = qw(Exporter ZoneMinder::Base);
 use parent qw(ZoneMinder::Object);
 
-# ==========================================================================
-#
-# General Utility Functions
-#
-# ==========================================================================
-
-use ZoneMinder::Config qw(:all);
-use ZoneMinder::Logger qw(:all);
-use ZoneMinder::Database qw(:all);
-
-use POSIX;
 use vars qw/ $table $primary_key /;
 $table = 'Monitors';
 $primary_key = 'Id';
@@ -53,6 +43,10 @@ $primary_key = 'Id';
 sub Server {
 	return new ZoneMinder::Server( $_[0]{ServerId} );
 } # end sub Server
+
+sub Storage {
+	return new ZoneMinder::Storage( $_[0]{StorageId} );
+} # end sub Storage
 
 1;
 __END__
@@ -64,10 +58,6 @@ ZoneMinder::Monitor - Perl Class for Monitors
 =head1 SYNOPSIS
 
 use ZoneMinder::Monitor;
-
-=head1 DESCRIPTION
-
-
 
 =head1 AUTHOR
 

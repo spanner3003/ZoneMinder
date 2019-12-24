@@ -36,6 +36,7 @@ public:
 
 protected:
   static const int MAX_STREAM_DELAY = 5; // Seconds
+  static const int MAX_SLEEP_USEC = 500000; // .5 Seconds
 
   static const StreamType DEFAULT_TYPE = STREAM_JPEG;
   enum { DEFAULT_RATE=ZM_RATE_BASE };
@@ -65,9 +66,12 @@ protected:
   const char *format;
   int replay_rate;
   int scale;
+  int last_scale;
   int zoom;
+  int last_zoom;
   double maxfps;
   int bitrate;
+  unsigned short last_x, last_y;
   unsigned short x, y;
 
 protected:
@@ -85,6 +89,7 @@ protected:
   int step;
 
   struct timeval now;
+  struct timeval last_comm_update;
 
   double base_fps;
   double effective_fps;
@@ -115,15 +120,15 @@ public:
     type = DEFAULT_TYPE;
     format = "";
     replay_rate = DEFAULT_RATE;
-    scale = DEFAULT_SCALE;
-    zoom = DEFAULT_ZOOM;
+    last_scale = scale = DEFAULT_SCALE;
+    last_zoom = zoom = DEFAULT_ZOOM;
     maxfps = DEFAULT_MAXFPS;
     bitrate = DEFAULT_BITRATE;
 
     paused = false;
     step = 0;
-    x = 0;
-    y = 0;
+    last_x = x = 0;
+    last_y = y = 0;
 
     connkey = 0;
     sd = -1;
@@ -132,6 +137,7 @@ public:
     memset( &loc_addr, 0, sizeof(loc_addr) );
     memset( &rem_sock_path, 0, sizeof(rem_sock_path) );
     memset( &rem_addr, 0, sizeof(rem_addr) );
+    memset( &sock_path_lock, 0, sizeof(sock_path_lock) );
 
     base_fps = 0.0;
     effective_fps = 0.0;
@@ -140,6 +146,9 @@ public:
 #if HAVE_LIBAVCODEC   
     vid_stream = 0;
 #endif // HAVE_LIBAVCODEC   
+    last_frame_sent = 0.0;
+    last_frame_timestamp = (struct timeval){0};
+    msg = { 0, { 0 } };
   }
   virtual ~StreamBase();
 
@@ -155,6 +164,7 @@ public:
       scale = DEFAULT_SCALE;
   }
   void setStreamReplayRate( int p_rate ) {
+    Debug(2,"Setting replay_rate %d", p_rate);
     replay_rate = p_rate;
   }
   void setStreamMaxFPS( double p_maxfps ) {
