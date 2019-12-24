@@ -23,16 +23,18 @@
 #include "zm.h"
 #include "zm_db.h"
 
-// From what I read, we need one of these per thread
 MYSQL dbconn;
-Mutex db_mutex;
+RecursiveMutex db_mutex;
 
 bool zmDbConnected = false;
 
 bool zmDbConnect() {
   // For some reason having these lines causes memory corruption and crashing on newer debian/ubuntu
-  //if ( zmDbConnected ) 
-    //return;
+	// But they really need to be here in order to prevent a double open of mysql
+  if ( zmDbConnected )  {
+    //Warning("Calling zmDbConnect when already connected");
+    return true;
+  }
 
   if ( !mysql_init(&dbconn) ) {
     Error("Can't initialise database connection: %s", mysql_error(&dbconn));
@@ -89,15 +91,15 @@ void zmDbClose() {
 }
 
 MYSQL_RES * zmDbFetch(const char * query) {
-  if ( ! zmDbConnected ) {
+  if ( !zmDbConnected ) {
     Error("Not connected.");
     return NULL;
   }
   db_mutex.lock();
 
   if ( mysql_query(&dbconn, query) ) {
-    Error("Can't run query: %s", mysql_error(&dbconn));
     db_mutex.unlock();
+    Error("Can't run query: %s", mysql_error(&dbconn));
     return NULL;
   }
   Debug(4, "Success running query: %s", query);

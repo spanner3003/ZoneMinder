@@ -20,6 +20,7 @@
 #ifndef ZM_COMMS_H
 #define ZM_COMMS_H
 
+#include "zm_logger.h"
 #include "zm_exception.h"
 
 #include <string.h>
@@ -194,7 +195,7 @@ public:
   SockAddrUnix();
   SockAddrUnix( const SockAddrUnix &addr ) : SockAddr( (const struct sockaddr *)&mAddrUn ), mAddrUn( addr.mAddrUn ) {
   }
-  SockAddrUnix( const struct sockaddr_un *addr ) : SockAddr( (const struct sockaddr *)&mAddrUn ), mAddrUn( *addr ) {
+  explicit SockAddrUnix( const struct sockaddr_un *addr ) : SockAddr( (const struct sockaddr *)&mAddrUn ), mAddrUn( *addr ) {
   }
 
   bool resolve( const char *path, const char *proto );
@@ -622,9 +623,9 @@ protected:
 
 public:
   Select();
-  Select( struct timeval timeout );
-  Select( int timeout );
-  Select( double timeout );
+  explicit Select( struct timeval timeout );
+  explicit Select( int timeout );
+  explicit Select( double timeout );
 
   void setTimeout( int timeout );
   void setTimeout( double timeout );

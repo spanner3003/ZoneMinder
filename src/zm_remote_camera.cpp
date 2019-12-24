@@ -52,9 +52,13 @@ RemoteCamera::RemoteCamera(
 
 RemoteCamera::~RemoteCamera() {
   if ( hp != NULL ) {
-      freeaddrinfo(hp);
+    freeaddrinfo(hp);
     hp = NULL;
   }
+	if ( mAuthenticator ) {
+		delete mAuthenticator;
+		mAuthenticator = NULL;
+	}
 }
 
 void RemoteCamera::Initialise() {
@@ -64,8 +68,8 @@ void RemoteCamera::Initialise() {
 	if( host.empty() )
 		Fatal( "No host specified for remote camera" );
 
-	if( port.empty() )
-		Fatal( "No port specified for remote camera" );
+	if ( port.empty() )
+		Fatal("No port specified for remote camera");
 
 	//if( path.empty() )
 		//Fatal( "No path specified for remote camera" );
@@ -95,6 +99,12 @@ void RemoteCamera::Initialise() {
   if ( ret != 0 ) {
     Fatal( "Can't getaddrinfo(%s port %s): %s", host.c_str(), port.c_str(), gai_strerror(ret) );
   }
+  struct addrinfo *p = NULL;
+  int addr_count = 0;
+  for ( p = hp; p != NULL; p = p->ai_next ) {
+    addr_count++;
+  }
+  Debug(1, "%d addresses returned", addr_count);
 }
 
 int RemoteCamera::Read( int fd, char *buf, int size ) {

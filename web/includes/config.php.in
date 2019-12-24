@@ -26,6 +26,7 @@ define( 'ZM_CONFIG_SUBDIR', '@ZM_CONFIG_SUBDIR@' ); // Path to config subfolder
 // Define, and override any given in config file
 define( 'ZM_VERSION', '@VERSION@' );               // Version
 define( 'ZM_DIR_TEMP', '@ZM_TMPDIR@' );
+define( 'ZM_DIR_CACHE', '@ZM_CACHEDIR@' );
 global $configvals;
 
 $configFile = ZM_CONFIG;
@@ -137,7 +138,7 @@ define( 'MYSQL_FMT_DATETIME_SHORT', '%y/%m/%d %H:%i:%S' );  // MySQL date_format
 require_once( 'database.php' );
 require_once( 'logger.php' );
 loadConfig();
-Logger::fetch()->initialise();
+ZM\Logger::fetch()->initialise();
 
 $GLOBALS['defaultUser'] = array(
   'Username'  => 'admin',
@@ -157,29 +158,19 @@ $GLOBALS['defaultUser'] = array(
 
 function loadConfig( $defineConsts=true ) {
   global $config;
-  global $configCats;
   global $dbConn;
 
   $config = array();
-  $configCat = array();
 
-  $result = $dbConn->query( 'select * from Config order by Id asc' );
+  $result = $dbConn->query('SELECT Name,Value FROM Config');
   if ( !$result )
     echo mysql_error();
-  $monitors = array();
   while( $row = dbFetchNext( $result ) ) {
     if ( $defineConsts )
       define( $row['Name'], $row['Value'] );
     $config[$row['Name']] = $row;
-    if ( !($configCat = &$configCats[$row['Category']]) ) {
-      $configCats[$row['Category']] = array();
-      $configCat = &$configCats[$row['Category']];
-    }
-    $configCat[$row['Name']] = $row;
   }
-  //print_r( $config );
-  //print_r( $configCats );
-}
+} # end function loadConfig
 
 // For Human-readability, use ZM_SERVER_HOST or ZM_SERVER_NAME in zm.conf, and convert it here to a ZM_SERVER_ID
 if ( ! defined('ZM_SERVER_ID') ) {
@@ -211,7 +202,7 @@ function process_configfile($configFile) {
         continue;
       elseif ( preg_match( '/^\s*#/', $str ))
         continue;
-      elseif ( preg_match( '/^\s*([^=\s]+)\s*=\s*(.*?)\s*$/', $str, $matches ))
+      elseif ( preg_match( '/^\s*([^=\s]+)\s*=\s*[\'"]*(.*?)[\'"]*\s*$/', $str, $matches ))
         $configvals[$matches[1]] = $matches[2];
     }
     fclose( $cfg );

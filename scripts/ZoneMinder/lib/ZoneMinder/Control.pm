@@ -49,7 +49,7 @@ sub new {
   my $self = {};
   $self->{name} = $class;
   if ( !defined($id) ) {
-    Fatal( "No monitor defined when invoking protocol ".$self->{name} );
+    Fatal('No monitor defined when invoking protocol '.$self->{name});
   }
   $self->{id} = $id;
   bless( $self, $class );
@@ -61,14 +61,13 @@ sub DESTROY {
 
 sub AUTOLOAD {
   my $self = shift;
-  my $class = ref($self) || croak( "$self not object" );
+  my $class = ref($self) || Fatal("$self not object");
   my $name = $AUTOLOAD;
   $name =~ s/.*://;
-  if ( exists($self->{$name}) )
-  {
-    return( $self->{$name} );
+  if ( exists($self->{$name}) ) {
+    return $self->{$name};
   }
-  croak( "Can't access $name member of object of class $class" );
+  Error("Can't access $name $AUTOLOAD member of object of class $class");
 }
 
 sub getKey {
@@ -78,19 +77,20 @@ sub getKey {
 
 sub open {
   my $self = shift;
-  Fatal( "No open method defined for protocol ".$self->{name} );
+  Fatal('No open method defined for protocol '.$self->{name});
 }
 
 sub close {
   my $self = shift;
-  Error( "No close method defined for protocol ".$self->{name} );
+  $self->{state} = 'closed';
+  Debug('No close method defined for protocol '.$self->{name});
 }
 
 sub loadMonitor {
   my $self = shift;
   if ( !$self->{Monitor} ) {
-    if ( !($self->{Monitor} = zmDbGetMonitor( $self->{id} )) ) {
-      Fatal( "Monitor id ".$self->{id}." not found or not controllable" );
+    if ( !($self->{Monitor} = zmDbGetMonitor($self->{id})) ) {
+      Fatal('Monitor id '.$self->{id}.' not found or not controllable');
     }
     if ( defined($self->{Monitor}->{AutoStopTimeout}) ) {
 # Convert to microseconds.
@@ -106,11 +106,11 @@ sub getParam {
   my $default = shift;
 
   if ( defined($params->{$name}) ) {
-    return( $params->{$name} );
+    return $params->{$name};
   } elsif ( defined($default) ) {
-    return( $default );
+    return $default;
   }
-  Fatal( "Missing mandatory parameter '$name'" );
+  Fatal("Missing mandatory parameter '$name'");
 }
 
 sub executeCommand {
@@ -126,51 +126,36 @@ sub executeCommand {
 #{
 #Fatal( "Unsupported command '$command'" );
 #}
-  &{$self->{$command}}( $self, $params );
+  &{$self->{$command}}($self, $params);
 }
 
 sub printMsg {
   my $self = shift;
-  Fatal( "No printMsg method defined for protocol ".$self->{name} );
+  Fatal('No printMsg method defined for protocol '.$self->{name});
 }
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-ZoneMinder::Database - Perl extension for blah blah blah
+ZoneMinder::Control - Parent class defining Control API
 
 =head1 SYNOPSIS
 
-use ZoneMinder::Database;
-blah blah blah
+use ZoneMinder::Control;
+
+This should be used as the parent class for packages implementing control
+apis for various cameras.
 
 =head1 DESCRIPTION
 
-Stub documentation for ZoneMinder, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
 
-Blah blah blah.
 
 =head2 EXPORT
 
 None by default.
 
-
-
-=head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 

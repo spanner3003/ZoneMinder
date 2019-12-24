@@ -55,10 +55,14 @@ class MonitorStream : public StreamBase {
     void processCommand( const CmdMsg *msg );
     void SingleImage( int scale=100 );
     void SingleImageRaw( int scale=100 );
+#ifdef HAVE_ZLIB_H
     void SingleImageZip( int scale=100 );
+#endif
 
   public:
-    MonitorStream() : ttl(0), playback_buffer(0), delayed(false), frame_count(0) {
+    MonitorStream() : 
+      temp_image_buffer(NULL), temp_image_buffer_count(0), temp_read_index(0), temp_write_index(0),
+      ttl(0), playback_buffer(0), delayed(false), frame_count(0) {
     }
     void setStreamBuffer( int p_playback_buffer ) {
       playback_buffer = p_playback_buffer;

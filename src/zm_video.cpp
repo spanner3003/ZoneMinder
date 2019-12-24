@@ -97,6 +97,11 @@ X264MP4Writer::X264MP4Writer(
   }
   codec_pf = AV_PIX_FMT_YUV420P;
 
+  if ( ! swscaleobj.init() ) {
+    Error("Failed init swscaleobj");
+    return;
+  }
+
   swscaleobj.SetDefaults(zm_pf, codec_pf, width, height);
 
   /* Calculate the image sizes. We will need this for parameter checking */
@@ -212,7 +217,8 @@ int X264MP4Writer::Close() {
   /* Flush all pending frames */
   for ( int i = (x264_encoder_delayed_frames(x264enc) + 1); i > 0; i-- ) {
 Debug(1,"Encoding delayed frame");
-    x264encodeloop(true);
+    if ( x264encodeloop(true) < 0 )
+      break;
   }
 
   /* Close the encoder */
@@ -370,7 +376,10 @@ int X264MP4Writer::x264config() {
   x264params.b_annexb = 0;
 
   /* TODO: Setup error handler */
-  // x264params.i_log_level = X264_LOG_DEBUG;
+  if ( logDebugging() )
+    x264params.i_log_level = X264_LOG_DEBUG;
+  else
+    x264params.i_log_level = X264_LOG_NONE;
 
   /* Process user parameters (excluding preset, tune and profile) */
   for ( unsigned int i = 0; i < user_params.size(); i++ ) {
@@ -403,7 +412,7 @@ int X264MP4Writer::x264config() {
   return 0;
 }
 
-void X264MP4Writer::x264encodeloop(bool bFlush) {
+int X264MP4Writer::x264encodeloop(bool bFlush) {
   x264_nal_t* nals;
   int i_nals;
   int frame_size;
@@ -449,11 +458,12 @@ void X264MP4Writer::x264encodeloop(bool bFlush) {
 
       /* Write the sample */
       if ( !buffer.empty() ) {
+        unsigned int bufSize = buffer.size();
         if ( !MP4WriteSample(
               mp4h,
               mp4vtid,
-              buffer.extract(buffer.size()),
-              buffer.size(),
+              buffer.extract(bufSize),
+              bufSize,
               duration,
               offset,
               prevKeyframe) ) {
@@ -497,6 +507,7 @@ void X264MP4Writer::x264encodeloop(bool bFlush) {
   } else {
     Error("x264 encode failed: %d", frame_size);
   }
+  return frame_size;
 }
 #endif  // ZM_VIDEOWRITER_X264MP4
 
